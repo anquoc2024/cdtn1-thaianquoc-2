@@ -1,0 +1,205 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="arch" name="Kiến trúc L2">
+    <mxGraphModel dx="1241" dy="677" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c2" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=18;" value="&lt;b&gt;SƠ ĐỒ KIẾN TRÚC – LUỒNG L2: TIẾP NHẬN &amp;amp; PHÂN LOẠI YÊU CẦU BẢO HÀNH&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:12px&#39;&gt;Ruby · Ruby on Rails (MVC + Service Layer) · PostgreSQL&lt;/span&gt;" vertex="1">
+          <mxGeometry height="50" width="1500" x="40" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" parent="1" style="swimlane;html=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="① Tầng Client (Presentation)" vertex="1">
+          <mxGeometry height="150" width="1100" x="40" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" parent="c3" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=11;" value="Nhân viên tiếp nhận" vertex="1">
+          <mxGeometry height="66" width="36" x="60" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" parent="c3" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=11;" value="Quản lý trung tâm" vertex="1">
+          <mxGeometry height="66" width="36" x="250" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" parent="c3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;arcSize=10;" value="&lt;b&gt;Trình duyệt Web&lt;/b&gt;&lt;br&gt;Giao diện HTML render từ Rails (ERB)&lt;br&gt;Hotwire: Turbo (cập nhật trang không reload) + Stimulus (JS)" vertex="1">
+          <mxGeometry height="86" width="600" x="460" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" parent="1" style="swimlane;html=1;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="② Tầng Web Server" vertex="1">
+          <mxGeometry height="120" width="1100" x="40" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" parent="c7" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;arcSize=10;" value="&lt;b&gt;Nginx&lt;/b&gt;&lt;br&gt;Reverse proxy · HTTPS/SSL · phục vụ static assets" vertex="1">
+          <mxGeometry height="60" width="320" x="180" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c9" parent="c7" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;arcSize=10;" value="&lt;b&gt;Puma&lt;/b&gt;&lt;br&gt;Rack app server · multi-thread (≥ 50 user đồng thời – NFR03)" vertex="1">
+          <mxGeometry height="60" width="340" x="600" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c10" parent="1" style="swimlane;html=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=14;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="③ Ứng dụng Ruby on Rails – Kiến trúc MVC + Service Layer" vertex="1">
+          <mxGeometry height="600" width="1100" x="40" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="c11" parent="c10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;arcSize=10;" value="&lt;b&gt;Router&lt;/b&gt;&lt;br&gt;config/routes.rb" vertex="1">
+          <mxGeometry height="60" width="240" x="20" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c12" parent="c10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;arcSize=10;" value="&lt;b&gt;Devise&lt;/b&gt;&lt;br&gt;Xác thực đăng nhập (User + role)" vertex="1">
+          <mxGeometry height="60" width="240" x="290" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c13" parent="c10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;arcSize=10;" value="&lt;b&gt;Pundit&lt;/b&gt;&lt;br&gt;Phân quyền theo vai trò (NFR05)" vertex="1">
+          <mxGeometry height="60" width="240" x="560" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c14" parent="c10" style="swimlane;html=1;startSize=26;fillColor=#ffffff;strokeColor=#b85450;fontStyle=1;fontSize=12;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="Controllers (app/controllers) – nhận request, điều phối" vertex="1">
+          <mxGeometry height="130" width="780" x="20" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="c15" parent="c14" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;arcSize=10;" value="&lt;b&gt;CustomersController&lt;/b&gt;&lt;br&gt;#search – tra cứu KH theo SĐT&lt;br&gt;(UC01, UC08)" vertex="1">
+          <mxGeometry height="78" width="240" x="15" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c16" parent="c14" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;arcSize=10;" value="&lt;b&gt;WarrantyRequestsController&lt;/b&gt;&lt;br&gt;#new / #create – thiết bị, mô tả lỗi,&lt;br&gt;nhóm sự cố, ưu tiên (UC02–UC06)" vertex="1">
+          <mxGeometry height="78" width="240" x="270" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c17" parent="c14" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;arcSize=10;" value="&lt;b&gt;Manager::WarrantyRequests&lt;br&gt;Controller&lt;/b&gt;&lt;br&gt;#index / #show (UC07)" vertex="1">
+          <mxGeometry height="78" width="240" x="525" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c18" parent="c10" style="swimlane;html=1;startSize=26;fillColor=#ffffff;strokeColor=#b85450;fontStyle=1;fontSize=12;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="Services (app/services) – nghiệp vụ" vertex="1">
+          <mxGeometry height="130" width="780" x="20" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="c19" parent="c18" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;arcSize=10;" value="&lt;b&gt;CustomerLookupService&lt;/b&gt;&lt;br&gt;Chuẩn hóa, kiểm tra SĐT;&lt;br&gt;không thấy → thông báo (BR07)" vertex="1">
+          <mxGeometry height="80" width="180" x="15" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c20" parent="c18" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;arcSize=10;" value="&lt;b&gt;WarrantyRequestCreator&lt;/b&gt;&lt;br&gt;Tạo yêu cầu trong 1 DB transaction (BR01–BR04)" vertex="1">
+          <mxGeometry height="80" width="180" x="205" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c21" parent="c18" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;arcSize=10;" value="&lt;b&gt;RequestCodeGenerator&lt;/b&gt;&lt;br&gt;Sinh mã yêu cầu duy nhất + trạng thái ban đầu (BR05)" vertex="1">
+          <mxGeometry height="80" width="180" x="395" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c22" parent="c18" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;arcSize=10;" value="&lt;b&gt;SlaDeadlineCalculator&lt;/b&gt;&lt;br&gt;Tính hạn cam kết theo mức ưu tiên (BR06)" vertex="1">
+          <mxGeometry height="80" width="180" x="585" y="38" as="geometry" />
+        </mxCell>
+        <mxCell id="c23" parent="c10" style="swimlane;html=1;startSize=26;fillColor=#ffffff;strokeColor=#b85450;fontStyle=1;fontSize=12;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="Models – ActiveRecord (app/models) – validations &amp;amp; associations" vertex="1">
+          <mxGeometry height="140" width="780" x="20" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="c24" parent="c23" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;User&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:9px&#39;&gt;role: receptionist / manager&lt;/span&gt;" vertex="1">
+          <mxGeometry height="85" width="115" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c25" parent="c23" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;Customer&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:9px&#39;&gt;phone (validates format)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="85" width="115" x="140" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c26" parent="c23" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;Device&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:9px&#39;&gt;belongs_to :customer; validates bắt buộc&lt;/span&gt;" vertex="1">
+          <mxGeometry height="85" width="115" x="265" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c27" parent="c23" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;WarrantyRequest&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:9px&#39;&gt;code, status, priority, due_at&lt;/span&gt;" vertex="1">
+          <mxGeometry height="85" width="115" x="390" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c28" parent="c23" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;IssueCategory&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:9px&#39;&gt;nhóm sự cố&lt;/span&gt;" vertex="1">
+          <mxGeometry height="85" width="115" x="515" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c29" parent="c23" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;Priority&lt;/b&gt;&lt;br&gt;&lt;span style=&#39;font-size:9px&#39;&gt;mức ưu tiên, số giờ SLA&lt;/span&gt;" vertex="1">
+          <mxGeometry height="85" width="115" x="640" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c30" parent="c10" style="swimlane;html=1;startSize=26;fillColor=#ffffff;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="Views (app/views)" vertex="1">
+          <mxGeometry height="535" width="250" x="830" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c31" parent="c30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;arcSize=10;" value="&lt;b&gt;layouts/application.html.erb&lt;/b&gt;&lt;br&gt;Khung trang, menu theo vai trò" vertex="1">
+          <mxGeometry height="72" width="220" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c32" parent="c30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;arcSize=10;" value="&lt;b&gt;customers/_search_form&lt;/b&gt;&lt;br&gt;Ô nhập SĐT tra cứu" vertex="1">
+          <mxGeometry height="72" width="220" x="15" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="c33" parent="c30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;arcSize=10;" value="&lt;b&gt;warranty_requests/new&lt;/b&gt;&lt;br&gt;Form thiết bị, mô tả lỗi, nhóm sự cố, ưu tiên" vertex="1">
+          <mxGeometry height="72" width="220" x="15" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="c34" parent="c30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;arcSize=10;" value="&lt;b&gt;manager/warranty_requests/index&lt;/b&gt;&lt;br&gt;Danh sách + trạng thái + hạn cam kết" vertex="1">
+          <mxGeometry height="72" width="220" x="15" y="295" as="geometry" />
+        </mxCell>
+        <mxCell id="c35" parent="c30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;arcSize=10;" value="&lt;b&gt;Flash / Turbo Stream&lt;/b&gt;&lt;br&gt;Thông báo lỗi, &quot;không tìm thấy KH&quot; (UC08)" vertex="1">
+          <mxGeometry height="72" width="220" x="15" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="c36" parent="c30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;arcSize=10;" value="&lt;b&gt;Stimulus controller&lt;/b&gt;&lt;br&gt;Kiểm tra SĐT, trường bắt buộc phía client" vertex="1">
+          <mxGeometry height="55" width="220" x="15" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="c37" parent="1" style="swimlane;html=1;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=14;rounded=1;arcSize=4;swimlaneFillColor=#ffffff;whiteSpace=wrap;" value="④ Tầng Dữ liệu – PostgreSQL 16" vertex="1">
+          <mxGeometry height="200" width="1100" x="40" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="c38" parent="c37" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br&gt;warranty_db" vertex="1">
+          <mxGeometry height="135" width="120" x="20" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c39" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;users&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="170" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c40" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;customers&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="320" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c41" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;devices&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="470" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c42" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;warranty_requests&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="620" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c43" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;issue_categories&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="770" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c44" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=11;arcSize=10;" value="&lt;b&gt;priorities&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="920" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="c45" parent="c37" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;arcSize=10;" value="&lt;b&gt;Ràng buộc toàn vẹn:&lt;/b&gt; FOREIGN KEY customers → devices → warranty_requests · NOT NULL trường bắt buộc (NFR04, BR04) · UNIQUE(warranty_requests.code) (BR05) · INDEX(customers.phone) → tra cứu ≤ 2s (NFR01) · INDEX(status, due_at) cho danh sách quản lý" vertex="1">
+          <mxGeometry height="70" width="890" x="170" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="c46" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=18;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;spacingRight=10;fontSize=12;" value="&lt;b style=&quot;font-size:14px&quot;&gt;Yêu cầu → kiến trúc&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Chức năng&lt;/b&gt;&lt;br&gt;• UC01/UC08 → CustomersController + CustomerLookupService&lt;br&gt;• UC02–UC05 → WarrantyRequestsController + Models (validations)&lt;br&gt;• UC06 → WarrantyRequestCreator + RequestCodeGenerator + SlaDeadlineCalculator&lt;br&gt;• UC07 → Manager::WarrantyRequestsController&lt;br&gt;&lt;br&gt;&lt;b&gt;Phi chức năng&lt;/b&gt;&lt;br&gt;• NFR01 (≤2s): index customers.phone&lt;br&gt;• NFR02 (≤3s): tạo yêu cầu trong 1 transaction, tính SLA tại server&lt;br&gt;• NFR03 (≥50 user): Puma multi-thread + connection pool PostgreSQL&lt;br&gt;• NFR04: validations Model + FK/NOT NULL ở DB&lt;br&gt;• NFR05: Devise (xác thực) + Pundit (phân quyền)&lt;br&gt;&lt;br&gt;&lt;b&gt;Quy tắc nghiệp vụ&lt;/b&gt;&lt;br&gt;• BR01, BR07: phải tìm thấy KH mới cho tạo yêu cầu&lt;br&gt;• BR02–BR04: kiểm tra 2 lớp (client + server) và DB&lt;br&gt;• BR05: mã duy nhất + trạng thái &quot;Mới tiếp nhận&quot;&lt;br&gt;• BR06: due_at = created_at + giờ SLA theo ưu tiên&lt;br&gt;&lt;br&gt;&lt;b&gt;Chú thích&lt;/b&gt;&lt;br&gt;━━ ▶ Request (gọi xuống)&lt;br&gt;- - ▶ Response (HTML / Turbo Stream)" vertex="1">
+          <mxGeometry height="1190" width="340" x="1200" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c47" edge="1" parent="1" source="c4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;exitX=0.5;exitY=0;entryX=0;entryY=0.3;" target="c6" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="118" y="104" />
+              <mxPoint x="430" y="104" />
+              <mxPoint x="430" y="138" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c48" edge="1" parent="1" source="c5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;endArrow=open;exitX=1;exitY=0.5;entryX=0;entryY=0.7;" target="c6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c49" edge="1" parent="1" source="c6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;" target="c8" value="HTTPS request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c50" edge="1" parent="1" source="c8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;" target="c9" value="proxy_pass">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c51" edge="1" parent="1" source="c9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="c11" value="Rack">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="400" />
+              <mxPoint x="180" y="400" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c52" edge="1" parent="1" source="c11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;" target="c12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c53" edge="1" parent="1" source="c12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;" target="c13" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c54" edge="1" parent="1" source="c13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="c14" value="authorize">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c55" edge="1" parent="1" source="c14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;" target="c18" value="gọi service">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c56" edge="1" parent="1" source="c18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;" target="c23" value="thao tác dữ liệu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c57" edge="1" parent="1" source="c23" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="c38" value="ActiveRecord (pg gem) – SQL">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="1040" />
+              <mxPoint x="130" y="1040" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c58" edge="1" parent="1" source="c14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.25;" target="c30" value="render">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c59" edge="1" parent="1" source="c30" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeWidth=1.5;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.3;entryX=1;entryY=0.5;strokeColor=#6c8ebf;fontColor=#6c8ebf;" target="c6" value="Response">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1160" y="625" />
+              <mxPoint x="1160" y="155" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
