@@ -1,0 +1,90 @@
+<% content_for :title, "#{@warranty_request.code} – Trung tâm bảo hành" %>
+<% request_record = @warranty_request %>
+<% customer = request_record.device.customer %>
+
+<div class="breadcrumb no-print">Trang chủ › Tiếp nhận bảo hành › Phiếu tiếp nhận</div>
+<h1 class="page-title">Phiếu tiếp nhận bảo hành</h1>
+
+<div class="receipt-layout">
+  <%# ---------- Phiếu tiếp nhận (in được) ---------- %>
+  <div class="card receipt">
+    <dl class="receipt__list">
+      <div class="receipt__row"><dt>Mã yêu cầu</dt><dd class="receipt__code"><%= request_record.code %></dd></div>
+      <div class="receipt__row"><dt>Trạng thái</dt>
+        <dd><span class="badge receipt__badge <%= status_badge_class(request_record) %>"><%= request_record.status_label %></span></dd></div>
+      <div class="receipt__row"><dt>Khách hàng</dt><dd><%= customer.name %> · <%= customer.code %> · <%= format_phone(customer.phone) %></dd></div>
+      <div class="receipt__row"><dt>Thiết bị</dt>
+        <dd><%= request_record.device.device_type %> <%= request_record.device.display_name %> · Serial: <%= request_record.device.serial_number %></dd></div>
+      <div class="receipt__row"><dt>Nhóm sự cố</dt><dd><%= request_record.issue_category.name %></dd></div>
+      <div class="receipt__row"><dt>Mức độ ưu tiên</dt>
+        <dd><span class="badge receipt__badge <%= priority_badge_class(request_record.priority) %>"><%= request_record.priority.label %></span></dd></div>
+      <div class="receipt__row"><dt>Thời điểm tiếp nhận</dt><dd><%= format_datetime(request_record.created_at) %></dd></div>
+      <div class="receipt__row"><dt>Hạn cam kết</dt><dd class="receipt__due"><%= format_datetime(request_record.due_at) %></dd></div>
+      <% if request_record.closed_at %>
+        <div class="receipt__row"><dt>Thời điểm đóng</dt><dd><%= format_datetime(request_record.closed_at) %></dd></div>
+      <% end %>
+    </dl>
+
+    <div class="receipt__desc">
+      <b>Mô tả lỗi:</b>
+      <p><%= request_record.issue_description %></p>
+    </div>
+
+    <div class="receipt__actions no-print">
+      <button class="btn btn--print" type="button" onclick="window.print()">In phiếu tiếp nhận</button>
+      <%= link_to "Tạo yêu cầu mới", search_customers_path, class: "btn btn--success" %>
+      <%= link_to "Về danh sách", manager_warranty_requests_path, class: "btn" %>
+    </div>
+  </div>
+
+  <%# ---------- Cập nhật trạng thái / hủy (S2) ---------- %>
+  <aside class="status-side no-print">
+    <div class="card status-panel">
+      <h2 class="card__title"><b>Cập nhật trạng thái</b></h2>
+
+      <% if request_record.closed? %>
+        <p class="status-panel__closed">Yêu cầu đã <b><%= WarrantyRequest::STATUS_LABELS[request_record.status].downcase %></b>, không thể đổi trạng thái nữa.</p>
+      <% else %>
+        <div class="status-panel__actions">
+          <% (request_record.allowed_next_statuses - ["cancelled"]).each do |next_status| %>
+            <%= button_to status_action_label(next_status), update_status_warranty_request_path(request_record),
+                          method: :patch, params: { to_status: next_status },
+                          class: "btn btn--primary status-panel__btn",
+                          form: { data: { turbo_confirm: "Chuyển yêu cầu #{request_record.code} sang “#{WarrantyRequest::STATUS_LABELS[next_status]}”?" } } %>
+          <% end %>
+        </div>
+
+        <% if request_record.allowed_next_statuses.include?("cancelled") %>
+          <%= form_with url: update_status_warranty_request_path(request_record), method: :patch, class: "status-panel__cancel",
+                        data: { turbo_confirm: "Hủy yêu cầu #{request_record.code}? Không thể hoàn tác." } do |f| %>
+            <%= f.hidden_field :to_status, value: "cancelled" %>
+            <%= f.label :note, class: "field__label" do %>Lý do hủy <span class="req">*</span><% end %>
+            <%= f.text_area :note, class: "textarea", rows: 2, maxlength: 500, required: true,
+                            placeholder: "VD: Khách hàng không đồng ý chi phí, xin nhận lại máy" %>
+            <%= f.button "Hủy yêu cầu", type: "submit", name: nil, class: "btn btn--danger" %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# ---------- Lịch sử trạng thái ---------- %>
+    <div class="card status-history">
+      <h2 class="card__title"><b>Lịch sử trạng thái</b></h2>
+      <% if request_record.status_logs.empty? %>
+        <p class="hint">Chưa có lịch sử (yêu cầu tạo từ dữ liệu mẫu).</p>
+      <% else %>
+        <ol class="timeline">
+          <% request_record.status_logs.each do |log| %>
+            <li class="timeline__item">
+              <div class="timeline__time"><%= format_datetime(log.created_at) %> · <%= log.changed_by.full_name %></div>
+              <div class="timeline__change">
+                <% if log.from_status %><%= log.from_label %> → <% end %><b><%= log.to_label %></b>
+              </div>
+              <% if log.note.present? %><div class="timeline__note"><%= log.note %></div><% end %>
+            </li>
+          <% end %>
+        </ol>
+      <% end %>
+    </div>
+  </aside>
+</div>

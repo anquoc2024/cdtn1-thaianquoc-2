@@ -1,0 +1,165 @@
+<% content_for :title, "Tạo yêu cầu bảo hành – Trung tâm bảo hành" %>
+
+<div class="breadcrumb">Trang chủ › Tiếp nhận bảo hành › Tạo yêu cầu</div>
+<h1 class="page-title">Tạo yêu cầu bảo hành</h1>
+
+<ol class="stepper">
+  <li class="step step--done"><span class="step__num">1</span><span class="step__label">Tra cứu khách hàng</span><span class="step__line"></span></li>
+  <li class="step step--done"><span class="step__num">2</span><span class="step__label">Thiết bị &amp; mô tả lỗi</span><span class="step__line"></span></li>
+  <li class="step step--current"><span class="step__num">3</span><span class="step__label">Phân loại &amp; tạo yêu cầu</span></li>
+</ol>
+
+<div class="customer-bar">
+  👤 Khách hàng:&nbsp;<b><%= @customer.name %></b>&nbsp;· <%= @customer.code %> · <%= format_phone(@customer.phone) %>
+  &nbsp;&nbsp;<%= link_to "Đổi khách hàng", search_customers_path %>
+</div>
+
+<div class="request-layout" data-controller="warranty-form">
+  <%= form_with model: @form, url: warranty_requests_path(customer_id: @customer.id),
+                class: "card request-form", data: { action: "input->warranty-form#refresh change->warranty-form#refresh" } do |f| %>
+
+    <% if @form.errors.any? %>
+      <div class="form-errors" role="alert">
+        <b>Chưa tạo được yêu cầu.</b> Vui lòng kiểm tra lại <%= @form.errors.count %> thông tin được đánh dấu đỏ (BR04).
+        <% if @form.errors[:base].any? %>
+          <ul><% @form.errors[:base].each do |message| %><li><%= message %></li><% end %></ul>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ---------- 1. Khách hàng ---------- %>
+    <h2 class="card__title"><b>1. Thông tin khách hàng</b> (UC01)</h2>
+    <div class="form-grid form-grid--customer">
+      <div class="field">
+        <%= f.label :customer_name, class: "field__label" do %>Họ tên khách hàng <span class="req">*</span><% end %>
+        <%= f.text_field :customer_name, class: field_classes(f, :customer_name), maxlength: 100, required: true %>
+        <%= field_error(f, :customer_name) %>
+      </div>
+      <div class="field">
+        <label class="field__label" for="customer_phone">Số điện thoại</label>
+        <input class="input input--readonly" id="customer_phone" type="tel" value="<%= format_phone(@customer.phone) %>" readonly>
+      </div>
+      <div class="field">
+        <label class="field__label" for="customer_code">Mã khách hàng</label>
+        <input class="input input--readonly" id="customer_code" type="text" value="<%= @customer.code %>" readonly>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <%# ---------- 2. Thiết bị (UC02, BR02) ---------- %>
+    <h2 class="card__title"><b>2. Thông tin thiết bị</b> (UC02)</h2>
+    <div class="form-grid form-grid--device-1">
+      <div class="field">
+        <%= f.label :device_type, class: "field__label" do %>Loại thiết bị <span class="req">*</span><% end %>
+        <div class="select-wrap">
+          <%= f.select :device_type, WarrantyRequestForm::DEVICE_TYPES, { prompt: "-- Chọn --" },
+                       class: field_classes(f, :device_type, "select"), required: true %>
+        </div>
+        <%= field_error(f, :device_type) %>
+      </div>
+      <div class="field">
+        <%= f.label :brand, class: "field__label" do %>Hãng <span class="req">*</span><% end %>
+        <div class="select-wrap">
+          <%= f.select :brand, WarrantyRequestForm::BRANDS, { prompt: "-- Chọn --" },
+                       class: field_classes(f, :brand, "select"), required: true,
+                       data: { warranty_form_target: "brand" } %>
+        </div>
+        <%= field_error(f, :brand) %>
+      </div>
+      <div class="field">
+        <%= f.label :model, class: "field__label" do %>Model <span class="req">*</span><% end %>
+        <%= f.text_field :model, class: field_classes(f, :model), placeholder: "VD: Galaxy A55", required: true,
+                         data: { warranty_form_target: "model" } %>
+        <%= field_error(f, :model) %>
+      </div>
+    </div>
+    <div class="form-grid form-grid--device-2">
+      <div class="field">
+        <%= f.label :serial_number, class: "field__label" do %>Số serial / IMEI <span class="req">*</span><% end %>
+        <%= f.text_field :serial_number, class: field_classes(f, :serial_number), maxlength: 50, required: true %>
+        <%= field_error(f, :serial_number) %>
+      </div>
+      <div class="field">
+        <%= f.label :purchase_date, class: "field__label" do %>Ngày mua <span class="req">*</span><% end %>
+        <%= f.date_field :purchase_date, class: field_classes(f, :purchase_date), max: Date.current, required: true %>
+        <%= field_error(f, :purchase_date) %>
+      </div>
+      <div class="field">
+        <%= f.label :warranty_card_number, "Số phiếu bảo hành", class: "field__label" %>
+        <%= f.text_field :warranty_card_number, class: "input", maxlength: 50 %>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <%# ---------- 3. Mô tả lỗi (UC03) ---------- %>
+    <h2 class="card__title"><b>3. Mô tả lỗi</b> (UC03)</h2>
+    <div class="field">
+      <%= f.label :issue_description, class: "field__label" do %>Mô tả chi tiết tình trạng lỗi <span class="req">*</span><% end %>
+      <%= f.text_area :issue_description, class: field_classes(f, :issue_description, "textarea"),
+                      maxlength: 1000, required: true, data: { warranty_form_target: "description" } %>
+      <%= field_error(f, :issue_description) %>
+    </div>
+    <div class="char-count" data-warranty-form-target="counter"><%= @form.issue_description.to_s.length %> / 1000 ký tự</div>
+
+    <hr class="divider divider--after-desc">
+
+    <%# ---------- 4. Phân loại (UC04, UC05, BR03) ---------- %>
+    <h2 class="card__title"><b>4. Phân loại</b> (UC04, UC05)</h2>
+    <div class="classify">
+      <div class="field">
+        <%= f.label :issue_category_id, class: "field__label" do %>Nhóm sự cố <span class="req">*</span><% end %>
+        <div class="select-wrap">
+          <%= f.collection_select :issue_category_id, @issue_categories, :id, :name, { prompt: "-- Chọn nhóm sự cố --" },
+                                  class: field_classes(f, :issue_category_id, "select"), required: true,
+                                  data: { warranty_form_target: "category" } %>
+        </div>
+        <%= field_error(f, :issue_category_id) %>
+      </div>
+      <fieldset class="priority">
+        <legend>Mức độ ưu tiên <span class="req">*</span></legend>
+        <% @priorities.each do |priority| %>
+          <label class="radio">
+            <%= f.radio_button :priority_id, priority.id, required: true,
+                               data: { label: priority.name, sla_hours: priority.sla_hours } %>
+            <span><%= priority.label %></span>
+          </label>
+        <% end %>
+        <%= field_error(f, :priority_id) %>
+      </fieldset>
+    </div>
+
+    <hr class="divider divider--after-classify">
+
+    <p class="required-note"><span class="req">*</span> Trường bắt buộc – hệ thống không tạo yêu cầu khi thiếu hoặc sai thông tin (BR02–BR04).</p>
+
+    <div class="form-actions">
+      <%= link_to "Hủy", search_customers_path, class: "btn btn--cancel" %>
+      <%= link_to "← Quay lại", search_customers_path(phone: @customer.phone), class: "btn btn--back" %>
+      <%= f.button "✓ Tạo yêu cầu bảo hành", type: "submit", name: nil, class: "btn btn--primary",
+                   data: { turbo_submits_with: "Đang tạo..." } %>
+    </div>
+  <% end %>
+
+  <%# ---------- Cột phải: tóm tắt cập nhật ngay khi nhập (Stimulus) ---------- %>
+  <aside>
+    <div class="card summary">
+      <h2 class="card__title"><b>Tóm tắt yêu cầu</b></h2>
+      <dl>
+        <div class="summary__row"><dt>Khách hàng</dt><dd><%= @customer.name %></dd></div>
+        <div class="summary__row"><dt>Mã yêu cầu</dt><dd><i>Tự sinh khi tạo</i></dd></div>
+        <div class="summary__row"><dt>Trạng thái ban đầu</dt><dd>Mới tiếp nhận</dd></div>
+        <div class="summary__row"><dt>Thiết bị</dt><dd data-warranty-form-target="deviceOut">—</dd></div>
+        <div class="summary__row"><dt>Nhóm sự cố</dt><dd data-warranty-form-target="categoryOut">—</dd></div>
+        <div class="summary__row"><dt>Ưu tiên</dt><dd data-warranty-form-target="priorityOut">—</dd></div>
+      </dl>
+      <div class="sla-box">
+        <div>⏱ <b>Hạn cam kết dự kiến</b></div>
+        <div class="sla-box__time" data-warranty-form-target="dueOut">—</div>
+        <div class="sla-box__note">Tự tính theo mức ưu tiên</div>
+      </div>
+    </div>
+    <%# Ghi chú thiết kế: Thời gian tạo yêu cầu + tính hạn ≤ 3 giây (NFR02). %>
+  </aside>
+</div>
