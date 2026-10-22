@@ -1,0 +1,122 @@
+<% content_for :title, "Danh sách yêu cầu bảo hành – Trung tâm bảo hành" %>
+
+<div class="breadcrumb">Trang chủ › Danh sách yêu cầu bảo hành</div>
+<h1 class="page-title">Danh sách &amp; trạng thái yêu cầu bảo hành</h1>
+
+<%# ---------- Thẻ thống kê ---------- %>
+<div class="stats">
+  <div class="stat stat--total"><div class="stat__label">Tổng yêu cầu hôm nay</div><div class="stat__value"><%= @stats[:today] %></div></div>
+  <div class="stat stat--new"><div class="stat__label">Mới tiếp nhận</div><div class="stat__value"><%= @stats[:received] %></div></div>
+  <div class="stat stat--doing"><div class="stat__label">Đang xử lý</div><div class="stat__value"><%= @stats[:in_progress] %></div></div>
+  <div class="stat stat--overdue"><div class="stat__label">Quá hạn cam kết</div><div class="stat__value"><%= @stats[:overdue] %></div></div>
+</div>
+
+<%# ---------- Bộ lọc (GET – giữ trên URL để chia sẻ / quay lại được) ---------- %>
+<%= form_with url: manager_warranty_requests_path, method: :get, class: "card filters" do |f| %>
+  <div class="field field--search">
+    <%= f.label :q, "Tìm kiếm", class: "field__label" %>
+    <%= f.search_field :q, value: @search.q, class: "input", placeholder: "🔍 Mã YC, tên KH, SĐT..." %>
+  </div>
+  <div class="field field--status">
+    <%= f.label :status, "Trạng thái", class: "field__label" %>
+    <div class="select-wrap">
+      <%= f.select :status, options_for_select(WarrantyRequestSearch::STATUS_OPTIONS, @search.status), {}, class: "select" %>
+    </div>
+  </div>
+  <div class="field field--category">
+    <%= f.label :issue_category_id, "Nhóm sự cố", class: "field__label" %>
+    <div class="select-wrap">
+      <%= f.select :issue_category_id,
+            options_from_collection_for_select(@issue_categories, :id, :name, @search.issue_category_id),
+            { include_blank: "Tất cả" }, class: "select" %>
+    </div>
+  </div>
+  <div class="field field--priority">
+    <%= f.label :priority_id, "Mức ưu tiên", class: "field__label" %>
+    <div class="select-wrap">
+      <%= f.select :priority_id,
+            options_from_collection_for_select(@priorities, :id, :name, @search.priority_id),
+            { include_blank: "Tất cả" }, class: "select" %>
+    </div>
+  </div>
+  <div class="field field--date">
+    <span class="field__label">Từ ngày – đến ngày</span>
+    <div class="date-range">
+      <%= f.date_field :from, value: @search.from_date, class: "input", aria: { label: "Từ ngày" } %>
+      <%= f.date_field :to,   value: @search.to_date,   class: "input", aria: { label: "Đến ngày" } %>
+    </div>
+  </div>
+  <div class="field field--sort">
+    <%= f.label :sort, "Sắp xếp", class: "field__label" %>
+    <div class="select-wrap">
+      <%= f.select :sort, options_for_select(WarrantyRequestSearch::SORT_OPTIONS, @search.sort), {}, class: "select" %>
+    </div>
+  </div>
+  <%= f.button "Lọc", type: "submit", name: nil, class: "btn btn--primary" %>
+<% end %>
+
+<%# ---------- Bảng danh sách ---------- %>
+<div class="card table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="col-code">Mã YC</th>
+        <th class="col-cust">Khách hàng</th>
+        <th class="col-phone">SĐT</th>
+        <th class="col-device">Thiết bị</th>
+        <th class="col-cat">Nhóm sự cố</th>
+        <th class="col-prio">Ưu tiên</th>
+        <th class="col-status">Trạng thái</th>
+        <th class="col-due">Hạn cam kết</th>
+        <th class="col-view"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @warranty_requests.each do |item| %>
+        <% customer = item.device.customer %>
+        <tr class="<%= 'is-overdue' if item.overdue? %>">
+          <td class="col-code"><%= link_to item.code, warranty_request_path(item), class: "code-link" %></td>
+          <td class="col-cust" title="<%= customer.name %>"><%= customer.name %></td>
+          <td class="col-phone"><%= customer.phone %></td>
+          <td class="col-device" title="<%= item.device.display_name %>"><%= item.device.display_name %></td>
+          <td class="col-cat"><%= item.issue_category.name %></td>
+          <td class="col-prio"><span class="badge badge--prio <%= priority_badge_class(item.priority) %>"><%= item.priority.name %></span></td>
+          <td class="col-status"><span class="badge badge--status <%= status_badge_class(item) %>"><%= item.status_label %></span></td>
+          <td class="col-due">
+            <% if item.overdue? %>
+              <span class="due-overdue"><%= item.due_at.strftime("%d/%m %H:%M") %> ⚠&#xFE0E;</span>
+            <% else %>
+              <%= item.due_at.strftime("%d/%m %H:%M") %>
+            <% end %>
+          </td>
+          <td class="col-view"><%= link_to "👁", warranty_request_path(item), class: "view-link", title: "Xem chi tiết" %></td>
+        </tr>
+      <% end %>
+      <% if @warranty_requests.empty? %>
+        <%# UC07 – luồng ngoại lệ 5a %>
+        <tr class="table__empty"><td colspan="9">Không có yêu cầu phù hợp với bộ lọc.</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="table-footer">
+    <span class="table-footer__info">
+      Hiển thị <%= @search.first_index %>–<%= @search.last_index %> trên <%= @search.total_count %> yêu cầu · sắp xếp: <%= @search.sort_label %>
+      <% if @search.filtered? %>
+        · <%= link_to "Xóa bộ lọc", manager_warranty_requests_path, class: "table-footer__reset" %>
+      <% end %>
+    </span>
+    <ul class="pagination">
+      <% current = @search.current_page %>
+      <li><%= current > 1 ? link_to("‹", page_path(current - 1), aria: { label: "Trang trước" }) : tag.span("‹", class: "is-disabled") %></li>
+      <% page_window(current, @search.total_pages).each do |page| %>
+        <% if page == :gap %>
+          <li><span>…</span></li>
+        <% else %>
+          <li><%= link_to page, page_path(page), class: ("is-current" if page == current), aria: { current: ("page" if page == current) } %></li>
+        <% end %>
+      <% end %>
+      <li><%= current < @search.total_pages ? link_to("›", page_path(current + 1), aria: { label: "Trang sau" }) : tag.span("›", class: "is-disabled") %></li>
+    </ul>
+  </div>
+</div>
