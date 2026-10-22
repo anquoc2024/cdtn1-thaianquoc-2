@@ -7,7 +7,7 @@ Rails.application.routes.draw do
 
   # Màn hình 2 – Tạo yêu cầu bảo hành (UC02–UC06) + phiếu tiếp nhận
   resources :warranty_requests, only: [:new, :create, :show] do
-    # S2 – Cập nhật trạng thái / hủy: PATCH /warranty_requests/:id/update_status
+    # Cập nhật trạng thái / hủy (UC09, UC10): PATCH /warranty_requests/:id/update_status
     patch :update_status, on: :member
   end
 
@@ -16,10 +16,11 @@ Rails.application.routes.draw do
     resources :warranty_requests, only: [:index]
   end
 
-  # S3 – API JSON (gọi bằng curl / Postman)
+  # API JSON (TD-21) – gọi bằng curl / Postman
   namespace :api do
-    namespace :v1 do
-      resources :warranty_requests, only: [:show, :index, :create]
+    get "health", to: "health#show"
+    resources :warranty_requests, only: [:index, :show, :create] do
+      patch :status, on: :member, action: :update_status   # PATCH /api/warranty_requests/:id/status
     end
   end
 
