@@ -1,0 +1,38 @@
+# ============================================================
+# .gitignore – repo cdtn1-thaianquoc-2 (ứng dụng Rails nằm trong src/)
+# ============================================================
+
+# Biến môi trường thật – KHÔNG BAO GIỜ đẩy lên GitHub (chỉ đẩy .env.example)
+.env
+.env.*
+!.env.example
+
+# Khóa giải mã credentials của Rails – bí mật
+src/config/master.key
+src/config/credentials/*.key
+
+# Nhật ký, tệp tạm, tệp tải lên khi chạy
+src/log/*
+!src/log/.keep
+src/tmp/*
+!src/tmp/.keep
+src/storage/*
+!src/storage/.keep
+src/public/assets
+src/coverage/
+src/.byebug_history
+
+# Thư viện cài trên máy
+src/node_modules/
+src/vendor/bundle/
+
+# Tệp của hệ điều hành / trình soạn thảo
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/*
+!.vscode/extensions.json
+
+# Tệp sao lưu tạm khi làm bài
+*.bak
+README.old.md
