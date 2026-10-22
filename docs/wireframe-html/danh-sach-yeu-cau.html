@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách yêu cầu bảo hành – Trung tâm bảo hành</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="topbar__brand"><b>🛠 TRUNG TÂM BẢO HÀNH</b> &nbsp;<small>Hệ thống tiếp nhận yêu cầu</small></div>
+      <div class="topbar__user">&nbsp; &nbsp; 👤 <b>Võ Phạm Việt Phú</b>&nbsp;· Quản lý trung tâm &nbsp;&nbsp;|&nbsp;&nbsp; <a href="#">Đăng xuất</a></div>
+    </header>
+
+    <nav class="sidebar">
+      <ul class="nav">
+        <li class="nav__item nav__item--active"><a href="danh-sach-yeu-cau.html">📋&nbsp; Danh sách yêu cầu</a></li>
+      </ul>
+    </nav>
+
+    <main class="main">
+      <div class="breadcrumb">Trang chủ › Danh sách yêu cầu bảo hành</div>
+      <h1 class="page-title">Danh sách &amp; trạng thái yêu cầu bảo hành</h1>
+
+      <!-- Thẻ thống kê -->
+      <div class="stats">
+        <div class="stat stat--total"><div class="stat__label">Tổng yêu cầu hôm nay</div><div class="stat__value">24</div></div>
+        <div class="stat stat--new"><div class="stat__label">Mới tiếp nhận</div><div class="stat__value">9</div></div>
+        <div class="stat stat--doing"><div class="stat__label">Đang xử lý</div><div class="stat__value">12</div></div>
+        <div class="stat stat--overdue"><div class="stat__label">Quá hạn cam kết</div><div class="stat__value">3</div></div>
+      </div>
+
+      <!-- Bộ lọc -->
+      <form class="card filters" action="#" method="get">
+        <div class="field field--search">
+          <label class="field__label" for="q">Tìm kiếm</label>
+          <input class="input" id="q" name="q" type="search" placeholder="🔍 Mã YC, tên KH, SĐT...">
+        </div>
+        <div class="field field--status">
+          <label class="field__label" for="status">Trạng thái</label>
+          <div class="select-wrap">
+            <select class="select" id="status" name="status">
+              <option selected>Tất cả</option>
+              <option>Mới tiếp nhận</option>
+              <option>Đang xử lý</option>
+              <option>Hoàn tất</option>
+              <option>Quá hạn</option>
+            </select>
+          </div>
+        </div>
+        <div class="field field--category">
+          <label class="field__label" for="category">Nhóm sự cố</label>
+          <div class="select-wrap">
+            <select class="select" id="category" name="issue_category_id">
+              <option selected>Tất cả</option>
+              <option>Nguồn / Pin / Sạc</option>
+              <option>Màn hình</option>
+              <option>Phần mềm</option>
+              <option>Cơ / Linh kiện</option>
+              <option>Âm thanh</option>
+              <option>Bàn phím</option>
+            </select>
+          </div>
+        </div>
+        <div class="field field--priority">
+          <label class="field__label" for="priority">Mức ưu tiên</label>
+          <div class="select-wrap">
+            <select class="select" id="priority" name="priority_id">
+              <option selected>Tất cả</option>
+              <option>Thấp</option>
+              <option>Trung bình</option>
+              <option>Cao</option>
+              <option>Khẩn cấp</option>
+            </select>
+          </div>
+        </div>
+        <div class="field field--date">
+          <label class="field__label" for="date_range">Từ ngày – đến ngày</label>
+          <input class="input" id="date_range" name="date_range" type="text" value="01/10 – 10/10">
+        </div>
+        <button class="btn btn--primary" type="submit">Lọc</button>
+      </form>
+
+      <!-- Bảng danh sách -->
+      <div class="card table-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="col-code">Mã YC</th>
+              <th class="col-cust">Khách hàng</th>
+              <th class="col-phone">SĐT</th>
+              <th class="col-device">Thiết bị</th>
+              <th class="col-cat">Nhóm sự cố</th>
+              <th class="col-prio">Ưu tiên</th>
+              <th class="col-status">Trạng thái</th>
+              <th class="col-due">Hạn cam kết</th>
+              <th class="col-view"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000123</a></td>
+              <td class="col-cust">Trần Thị Bình</td>
+              <td class="col-phone">0905123456</td>
+              <td class="col-device">Samsung Galaxy A55</td>
+              <td class="col-cat">Nguồn / Pin</td>
+              <td class="col-prio"><span class="badge badge--prio badge--high">Cao</span></td>
+              <td class="col-status"><span class="badge badge--status badge--new">Mới tiếp nhận</span></td>
+              <td class="col-due">11/10 09:40</td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr>
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000122</a></td>
+              <td class="col-cust">Phạm Văn Cường</td>
+              <td class="col-phone">0912345678</td>
+              <td class="col-device">Laptop Dell Inspiron</td>
+              <td class="col-cat">Màn hình</td>
+              <td class="col-prio"><span class="badge badge--prio badge--medium">Trung bình</span></td>
+              <td class="col-status"><span class="badge badge--status badge--doing">Đang xử lý</span></td>
+              <td class="col-due">11/10 16:00</td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr>
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000121</a></td>
+              <td class="col-cust">Lê Thị Dung</td>
+              <td class="col-phone">0987654321</td>
+              <td class="col-device">iPhone 14</td>
+              <td class="col-cat">Phần mềm</td>
+              <td class="col-prio"><span class="badge badge--prio badge--low">Thấp</span></td>
+              <td class="col-status"><span class="badge badge--status badge--new">Mới tiếp nhận</span></td>
+              <td class="col-due">13/10 08:15</td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr class="is-overdue">
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000120</a></td>
+              <td class="col-cust">Hoàng Minh Đức</td>
+              <td class="col-phone">0934111222</td>
+              <td class="col-device">Laptop Accer</td>
+              <td class="col-cat">Cơ / Linh kiện</td>
+              <td class="col-prio"><span class="badge badge--prio badge--urgent">Khẩn cấp</span></td>
+              <td class="col-status"><span class="badge badge--status badge--overdue">Quá hạn</span></td>
+              <td class="col-due"><span class="due-overdue">09/10 17:00 ⚠&#xFE0E;</span></td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr>
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000119</a></td>
+              <td class="col-cust">Vũ Thu Hà</td>
+              <td class="col-phone">0978222333</td>
+              <td class="col-device">iPhone 16 Promax</td>
+              <td class="col-cat">Nguồn / Pin</td>
+              <td class="col-prio"><span class="badge badge--prio badge--high">Cao</span></td>
+              <td class="col-status"><span class="badge badge--status badge--doing">Đang xử lý</span></td>
+              <td class="col-due">10/10 14:30</td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr>
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000118</a></td>
+              <td class="col-cust">Ngô Gia Huy</td>
+              <td class="col-phone">0903444555</td>
+              <td class="col-device">Tai nghe Sony</td>
+              <td class="col-cat">Âm thanh</td>
+              <td class="col-prio"><span class="badge badge--prio badge--low">Thấp</span></td>
+              <td class="col-status"><span class="badge badge--status badge--done">Hoàn tất</span></td>
+              <td class="col-due">12/10 10:00</td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr class="is-overdue">
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000117</a></td>
+              <td class="col-cust">Đặng Mai Lan</td>
+              <td class="col-phone">0911666777</td>
+              <td class="col-device">Laptop HP Pavilion</td>
+              <td class="col-cat">Bàn phím</td>
+              <td class="col-prio"><span class="badge badge--prio badge--medium">Trung bình</span></td>
+              <td class="col-status"><span class="badge badge--status badge--overdue">Quá hạn</span></td>
+              <td class="col-due"><span class="due-overdue">08/10 11:20 ⚠&#xFE0E;</span></td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+            <tr>
+              <td class="col-code"><a class="code-link" href="#">BH-2026-000116</a></td>
+              <td class="col-cust">Bùi Quốc Khánh</td>
+              <td class="col-phone">0966888999</td>
+              <td class="col-device">Xiaomi Redmi 13</td>
+              <td class="col-cat">Màn hình</td>
+              <td class="col-prio"><span class="badge badge--prio badge--high">Cao</span></td>
+              <td class="col-status"><span class="badge badge--status badge--doing">Đang xử lý</span></td>
+              <td class="col-due">10/10 18:45</td>
+              <td class="col-view"><a class="view-link" href="#" title="Xem chi tiết">👁</a></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="table-footer">
+          <span class="table-footer__info">Hiển thị 1–8 trên 124 yêu cầu · sắp xếp theo hạn cam kết</span>
+          <ul class="pagination">
+            <li><a href="#" aria-label="Trang trước">‹</a></li>
+            <li><a class="is-current" href="#" aria-current="page">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><span>…</span></li>
+            <li><a href="#">16</a></li>
+            <li><a href="#" aria-label="Trang sau">›</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Ghi chú thiết kế: Chỉ vai trò Quản lý trung tâm truy cập (Pundit – NFR05).
+           Bấm 👁 để xem chi tiết yêu cầu (UC07, FR08). -->
+    </main>
+
+  </div>
+</body>
+</html>

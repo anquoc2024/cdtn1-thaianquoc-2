@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tra cứu khách hàng – Trung tâm bảo hành</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="topbar__brand"><b>&nbsp;TRUNG TÂM BẢO HÀNH</b> &nbsp;<small>Hệ thống tiếp nhận yêu cầu</small></div>
+      <div class="topbar__user">🔔 &nbsp;&nbsp; 👤 <b>Thái An Quốc&nbsp;</b>&nbsp;· Nhân viên tiếp nhận &nbsp;&nbsp;|&nbsp;&nbsp; <a href="#">Đăng xuất</a></div>
+    </header>
+
+    <nav class="sidebar">
+      <ul class="nav">
+        <li class="nav__item nav__item--active"><a href="tra-cuu-khach-hang.html">🔍&nbsp; Tra cứu khách hàng</a></li>
+        <li class="nav__item"><a href="tao-yeu-cau-bao-hanh.html">📝&nbsp; Tạo yêu cầu bảo hành</a></li>
+        <li class="nav__item"><a href="danh-sach-yeu-cau.html">📋&nbsp; Danh sách yêu cầu</a></li>
+      </ul>
+    </nav>
+
+    <main class="main">
+      <div class="breadcrumb">Trang chủ › Tiếp nhận bảo hành › Tra cứu</div>
+      <h1 class="page-title">Tiếp nhận bảo hành – Tra cứu khách hàng</h1>
+
+      <ol class="stepper">
+        <li class="step step--current"><span class="step__num">1</span><span class="step__label">Tra cứu khách hàng</span><span class="step__line"></span></li>
+        <li class="step"><span class="step__num">2</span><span class="step__label">Thiết bị &amp; mô tả lỗi</span><span class="step__line"></span></li>
+        <li class="step"><span class="step__num">3</span><span class="step__label">Phân loại &amp; tạo yêu cầu</span></li>
+      </ol>
+
+      <!-- Ô tra cứu -->
+      <form class="card lookup" action="#" method="get">
+        <h2 class="card__title"><b>Nhập số điện thoại khách hàng</b></h2>
+        <label class="field__label lookup__label" for="phone">Số điện thoại <span class="req">*</span></label>
+        <div class="lookup__row">
+          <input class="input" id="phone" name="phone" type="tel" value="0905 123 456" required>
+          <button class="btn btn--primary" type="submit">🔍 Tra cứu</button>
+          <button class="btn btn--reset" type="reset">Làm mới</button>
+        </div>
+        <p class="hint">Định dạng: 10 chữ số, bắt đầu bằng 0. Hệ thống kiểm tra hợp lệ trước khi tra cứu (FR01).</p>
+      </form>
+
+      <div class="cases">
+        <!-- Trường hợp A -->
+        <section>
+          <h3 class="case-title case-title--found">Trường hợp A – Tìm thấy khách hàng</h3>
+          <div class="card customer-card">
+            <div class="customer-card__head">
+              <div class="avatar">TB</div>
+              <div class="customer-card__name"><b>Trần Thị Bình</b><br><span>Mã KH: KH-000245</span></div>
+              <span class="badge badge--success">✓ Đã xác định</span>
+            </div>
+            <dl class="info-list">
+              <div class="info-list__row"><dt>Số điện thoại</dt><dd>0905 123 456</dd></div>
+              <div class="info-list__row"><dt>Email</dt><dd>binh.tran@gmail.com</dd></div>
+              <div class="info-list__row"><dt>Địa chỉ</dt><dd>12 Lê Lợi, Q.1, TP.HCM</dd></div>
+              <div class="info-list__row"><dt>Số yêu cầu trước đây</dt><dd>2 yêu cầu (gần nhất 03/2026)</dd></div>
+            </dl>
+            <div class="customer-card__actions">
+              <a class="btn btn--primary" href="tao-yeu-cau-bao-hanh.html">Chọn khách hàng &amp; tiếp tục →</a>
+              <button class="btn btn--history" type="button">Xem lịch sử</button>
+            </div>
+          </div>
+        </section>
+
+        <div>
+          <!-- Trường hợp B (UC08) -->
+          <section>
+            <h3 class="case-title case-title--notfound">Trường hợp B – Không tìm thấy khách hàng (UC08)</h3>
+            <div class="alert-notfound" role="alert">
+              <div class="alert-notfound__icon">⚠&#xFE0E;</div>
+              <div class="alert-notfound__body">
+                <p><b>Không tìm thấy khách hàng với số điện thoại 0912 000 111</b></p>
+                <p>Vui lòng kiểm tra lại số điện thoại. Hệ thống <b>không cho phép tiếp tục tạo yêu cầu</b> khi chưa xác định được khách hàng (BR01, BR07).</p>
+              </div>
+              <button class="btn" type="button">Nhập lại số điện thoại</button>
+            </div>
+          </section>
+
+          <!-- Trường hợp C -->
+          <section class="case-invalid">
+            <h3 class="case-title case-title--invalid">Trường hợp C – Số điện thoại không hợp lệ</h3>
+            <div class="field">
+              <label class="field__label" for="phone-invalid">Số điện thoại <span class="req">*</span></label>
+              <input class="input input--error" id="phone-invalid" type="tel" value="0905 12" aria-invalid="true">
+              <p class="error-text">⚠&#xFE0E; Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0.</p>
+            </div>
+          </section>
+
+          <!-- Ghi chú thiết kế
+               • Nút “Tiếp tục” chỉ hiện khi đã tìm thấy KH.
+               • Phản hồi tra cứu ≤ 2 giây (NFR01). -->
+        </div>
+      </div>
+    </main>
+
+  </div>
+</body>
+</html>

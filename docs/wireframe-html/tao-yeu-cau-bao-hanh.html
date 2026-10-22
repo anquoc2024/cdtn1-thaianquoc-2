@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo yêu cầu bảo hành – Trung tâm bảo hành</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="topbar">
+      <div class="topbar__brand"><b>🛠 TRUNG TÂM BẢO HÀNH</b> &nbsp;<small>Hệ thống tiếp nhận yêu cầu</small></div>
+      <div class="topbar__user">🔔 &nbsp;&nbsp; 👤 <b>Nguyễn Văn A</b> · Nhân viên tiếp nhận &nbsp;&nbsp;|&nbsp;&nbsp; <a href="#">Đăng xuất</a></div>
+    </header>
+
+    <nav class="sidebar">
+      <ul class="nav">
+        <li class="nav__item"><a href="tra-cuu-khach-hang.html">🔍&nbsp; Tra cứu khách hàng</a></li>
+        <li class="nav__item nav__item--active"><a href="tao-yeu-cau-bao-hanh.html">📝&nbsp; Tạo yêu cầu bảo hành</a></li>
+        <li class="nav__item"><a href="danh-sach-yeu-cau.html">📋&nbsp; Danh sách yêu cầu</a></li>
+      </ul>
+    </nav>
+
+    <main class="main">
+      <div class="breadcrumb">Trang chủ › Tiếp nhận bảo hành › Tạo yêu cầu</div>
+      <h1 class="page-title">Tạo yêu cầu bảo hành</h1>
+
+      <ol class="stepper">
+        <li class="step step--done"><span class="step__num">1</span><span class="step__label">Tra cứu khách hàng</span><span class="step__line"></span></li>
+        <li class="step step--done"><span class="step__num">2</span><span class="step__label">Thiết bị &amp; mô tả lỗi</span><span class="step__line"></span></li>
+        <li class="step step--current"><span class="step__num">3</span><span class="step__label">Phân loại &amp; tạo yêu cầu</span></li>
+      </ol>
+
+      <div class="customer-bar">
+        👤 Khách hàng:&nbsp;<b>Trần Thị Bình</b>&nbsp;· KH-000245 · 0905 123 456 &nbsp;&nbsp;<a href="tra-cuu-khach-hang.html">Đổi khách hàng</a>
+      </div>
+
+      <div class="request-layout">
+        <!-- Form tạo yêu cầu -->
+        <form class="card request-form" action="#" method="post">
+
+          <h2 class="card__title"><b>1. Thông tin thiết bị</b> (UC02)</h2>
+          <div class="form-grid form-grid--device-1">
+            <div class="field">
+              <label class="field__label" for="device_type">Loại thiết bị <span class="req">*</span></label>
+              <div class="select-wrap">
+                <select class="select" id="device_type" name="device_type" required>
+                  <option selected>Điện thoại</option>
+                  <option>Laptop</option>
+                  <option>Máy tính bảng</option>
+                  <option>Tai nghe</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" for="brand">Hãng <span class="req">*</span></label>
+              <div class="select-wrap">
+                <select class="select" id="brand" name="brand" required>
+                  <option selected>Samsung</option>
+                  <option>Apple</option>
+                  <option>Xiaomi</option>
+                  <option>Dell</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" for="model">Model <span class="req">*</span></label>
+              <input class="input" id="model" name="model" type="text" value="Galaxy A55" required>
+            </div>
+          </div>
+          <div class="form-grid form-grid--device-2">
+            <div class="field">
+              <label class="field__label" for="serial_number">Số serial / IMEI <span class="req">*</span></label>
+              <input class="input" id="serial_number" name="serial_number" type="text" value="R58T20XXXXX" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="purchase_date">Ngày mua <span class="req">*</span></label>
+              <input class="input" id="purchase_date" name="purchase_date" type="text" value="15/03/2026" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="warranty_card_number">Số phiếu bảo hành</label>
+              <input class="input" id="warranty_card_number" name="warranty_card_number" type="text" value="PBH-88213">
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <h2 class="card__title"><b>2. Mô tả lỗi</b> (UC03)</h2>
+          <div class="field">
+            <label class="field__label" for="issue_description">Mô tả chi tiết tình trạng lỗi <span class="req">*</span></label>
+            <textarea class="textarea" id="issue_description" name="issue_description" maxlength="1000" required>Máy tự tắt nguồn khi pin còn khoảng 30%, sạc không vào. Xuất hiện từ 3 ngày trước, không rơi vỡ, không vào nước.</textarea>
+          </div>
+          <div class="char-count">98 / 1000 ký tự</div>
+
+          <hr class="divider divider--after-desc">
+
+          <h2 class="card__title"><b>3. Phân loại</b> (UC04, UC05)</h2>
+          <div class="classify">
+            <div class="field">
+              <label class="field__label" for="issue_category">Nhóm sự cố <span class="req">*</span></label>
+              <div class="select-wrap">
+                <select class="select" id="issue_category" name="issue_category_id" required>
+                  <option selected>Nguồn / Pin / Sạc</option>
+                  <option>Màn hình</option>
+                  <option>Phần mềm</option>
+                  <option>Cơ / Linh kiện</option>
+                  <option>Âm thanh</option>
+                  <option>Bàn phím</option>
+                </select>
+              </div>
+            </div>
+            <fieldset class="priority">
+              <legend>Mức độ ưu tiên <span class="req">*</span></legend>
+              <label class="radio"><input type="radio" name="priority_id" value="low"><span>Thấp · 72h</span></label>
+              <label class="radio"><input type="radio" name="priority_id" value="medium"><span>Trung bình · 48h</span></label>
+              <label class="radio"><input type="radio" name="priority_id" value="high" checked><span>Cao · 24h</span></label>
+              <label class="radio"><input type="radio" name="priority_id" value="urgent"><span>Khẩn cấp · 8h</span></label>
+            </fieldset>
+          </div>
+
+          <hr class="divider divider--after-classify">
+
+          <p class="required-note"><span class="req">*</span> Trường bắt buộc – hệ thống không tạo yêu cầu khi thiếu hoặc sai thông tin (BR02–BR04).</p>
+
+          <div class="form-actions">
+            <button class="btn btn--cancel" type="reset">Hủy</button>
+            <a class="btn btn--back" href="tra-cuu-khach-hang.html">← Quay lại</a>
+            <button class="btn btn--primary" type="submit">✓ Tạo yêu cầu bảo hành</button>
+          </div>
+        </form>
+
+        <!-- Cột phải -->
+        <aside>
+          <div class="card summary">
+            <h2 class="card__title"><b>Tóm tắt yêu cầu</b></h2>
+            <dl>
+              <div class="summary__row"><dt>Mã yêu cầu</dt><dd><i>Tự sinh khi tạo</i></dd></div>
+              <div class="summary__row"><dt>Trạng thái ban đầu</dt><dd>Mới tiếp nhận</dd></div>
+              <div class="summary__row"><dt>Thiết bị</dt><dd>Samsung Galaxy A55</dd></div>
+              <div class="summary__row"><dt>Nhóm sự cố</dt><dd>Nguồn / Pin / Sạc</dd></div>
+              <div class="summary__row"><dt>Ưu tiên</dt><dd>Cao (24h)</dd></div>
+            </dl>
+            <div class="sla-box">
+              <div>⏱ <b>Hạn cam kết dự kiến</b></div>
+              <div class="sla-box__time">11/10/2026 · 09:40</div>
+              <div class="sla-box__note">Tự tính theo mức ưu tiên (FR07, BR06)</div>
+            </div>
+          </div>
+
+          <p class="success-title">Sau khi bấm “Tạo yêu cầu” thành công:</p>
+          <div class="success-box" role="status">
+            <div class="success-box__body">
+              <p>✅ <b>Tạo yêu cầu thành công</b></p>
+              <p>Mã yêu cầu: <b>BH-2026-000123</b><br>Trạng thái: <b>Mới tiếp nhận</b><br>Hạn cam kết: <b>11/10/2026 09:40</b></p>
+            </div>
+            <div class="success-box__actions">
+              <button class="btn btn--print" type="button">In phiếu tiếp nhận</button>
+              <a class="btn btn--success" href="tra-cuu-khach-hang.html">Tạo yêu cầu mới</a>
+            </div>
+          </div>
+
+          <!-- Ghi chú thiết kế: Thời gian tạo yêu cầu + tính hạn ≤ 3 giây (NFR02). -->
+        </aside>
+      </div>
+    </main>
+
+  </div>
+</body>
+</html>
