@@ -1,0 +1,72 @@
+/* ============================================================
+   Icon theo template (Phosphor + Bootstrap Icons) cho
+   thanh tiêu đề và thanh bên – thay cho emoji
+   ============================================================ */
+
+/* ---------- Thanh tiêu đề ---------- */
+.topbar__brand { display: flex; align-items: center; gap: 8px; }
+.topbar__logo  { font-size: 22px; }
+.topbar__brand b { font-size: 16px; letter-spacing: .2px; }
+.topbar__brand small { font-size: 11px; opacity: .8; margin-left: 4px; }
+
+.topbar__right { display: flex; align-items: center; gap: 12px; }
+
+.topbar__icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 19px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.topbar__icon-btn:hover { background: rgba(255, 255, 255, .14); }
+
+.topbar__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .08);
+}
+.topbar__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.topbar__who { display: flex; flex-direction: column; line-height: 1.25; }
+.topbar__who b { font-size: 12px; }
+.topbar__who small { font-size: 11px; opacity: .8; }
+
+/* ---------- Thanh bên ---------- */
+.nav__title {
+  padding: 14px 10px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+.nav__title:first-child { padding-top: 0; }
+.nav__item + .nav__title { margin-top: 6px; }
+.nav__title + .nav__item { margin-top: 0; }
+
+.nav__item a { gap: 10px; }
+.nav__icon {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+  opacity: .85;
+}
+.nav__item--active .nav__icon { opacity: 1; }

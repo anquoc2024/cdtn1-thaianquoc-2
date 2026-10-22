@@ -1,0 +1,17 @@
+<%# Thanh bên: luôn hiện đủ 3 mục, tô sáng mục đang mở. Icon: Phosphor (giống template) %>
+<nav class="sidebar">
+  <ul class="nav">
+    <li class="nav__title">Tiếp nhận</li>
+    <li class="nav__item <%= 'nav__item--active' if controller_path == 'customers' %>">
+      <a href="<%= search_customers_path %>"><i class="ph ph-address-book nav__icon" aria-hidden="true"></i><span>Tra cứu khách hàng</span></a>
+    </li>
+    <li class="nav__item <%= 'nav__item--active' if controller_path == 'warranty_requests' %>">
+      <a href="<%= new_warranty_request_path %>"><i class="ph ph-file-plus nav__icon" aria-hidden="true"></i><span>Tạo yêu cầu bảo hành</span></a>
+    </li>
+
+    <li class="nav__title">Quản lý</li>
+    <li class="nav__item <%= 'nav__item--active' if controller_path == 'manager/warranty_requests' %>">
+      <a href="<%= manager_warranty_requests_path %>"><i class="ph ph-clipboard-text nav__icon" aria-hidden="true"></i><span>Danh sách yêu cầu</span></a>
+    </li>
+  </ul>
+</nav>

@@ -1,0 +1,24 @@
+/* ============================================================
+   B4 – Màn hình 3: bổ sung cho bộ lọc, bảng và phân trang
+   ============================================================ */
+
+/* Chia lại độ rộng để có chỗ cho 2 ô ngày (từ – đến) */
+.filters .field--search   { width: 200px; }
+.filters .field--status   { width: 140px; }
+.filters .field--category { width: 150px; }
+.filters .field--priority { width: 120px; }
+.filters .field--date     { width: 248px; }
+.date-range { display: flex; gap: 4px; }
+.date-range .input { width: 122px; padding: 0 6px; }
+
+/* Dòng "không có kết quả" */
+.table tbody tr.table__empty td {
+  text-align: center;
+  color: var(--text-muted);
+  height: 80px;
+}
+
+.table-footer__reset { color: var(--primary); text-decoration: underline; }
+
+/* Nút phân trang bị khóa (đang ở trang đầu / cuối) */
+.pagination .is-disabled { color: var(--border); cursor: default; }

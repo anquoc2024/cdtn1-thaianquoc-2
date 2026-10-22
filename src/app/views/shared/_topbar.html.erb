@@ -1,0 +1,26 @@
+<%# Thanh tiêu đề – icon theo bộ Phosphor / Bootstrap Icons của template.
+    Hệ thống không có đăng nhập nên tên và vai trò hiển thị cố định theo wireframe. %>
+<% manager_page = controller_path.start_with?("manager/") %>
+<header class="topbar">
+  <div class="topbar__brand">
+    <i class="ph ph-wrench topbar__logo" aria-hidden="true"></i>
+    <b>TRUNG TÂM BẢO HÀNH</b>
+    <small>Hệ thống tiếp nhận yêu cầu</small>
+  </div>
+
+  <div class="topbar__right">
+    <% unless manager_page %>
+      <button type="button" class="topbar__icon-btn" aria-label="Thông báo" title="Thông báo">
+        <i class="bi bi-bell" aria-hidden="true"></i>
+      </button>
+    <% end %>
+
+    <div class="topbar__profile">
+      <span class="topbar__avatar"><%= manager_page ? "VP" : "TQ" %></span>
+      <span class="topbar__who">
+        <b><%= manager_page ? "Võ Phạm Việt Phú" : "Thái An Quốc" %></b>
+        <small><%= manager_page ? "Quản lý trung tâm" : "Nhân viên tiếp nhận" %></small>
+      </span>
+    </div>
+  </div>
+</header>
