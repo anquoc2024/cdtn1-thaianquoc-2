@@ -1,0 +1,95 @@
+<% content_for :title, "Tra cứu khách hàng – Trung tâm bảo hành" %>
+
+<div class="breadcrumb">Trang chủ › Tiếp nhận bảo hành › Tra cứu</div>
+<h1 class="page-title">Tiếp nhận bảo hành – Tra cứu khách hàng</h1>
+
+<ol class="stepper">
+  <li class="step step--current"><span class="step__num">1</span><span class="step__label">Tra cứu khách hàng</span><span class="step__line"></span></li>
+  <li class="step"><span class="step__num">2</span><span class="step__label">Thiết bị &amp; mô tả lỗi</span><span class="step__line"></span></li>
+  <li class="step"><span class="step__num">3</span><span class="step__label">Phân loại &amp; tạo yêu cầu</span></li>
+</ol>
+
+<%# Ô tra cứu (UC01) – SĐT, mã khách hàng hoặc tên %>
+<%= form_with url: search_customers_path, method: :get, class: "card lookup" do |f| %>
+  <h2 class="card__title"><b>Tìm khách hàng</b></h2>
+  <%= f.label :q, class: "field__label lookup__label" do %>Số điện thoại, mã khách hàng hoặc tên <span class="req">*</span><% end %>
+  <div class="lookup__row">
+    <%= f.text_field :q, value: @query,
+          class: ["input", ("input--error" if @result.invalid?)],
+          placeholder: "VD: 0905 123 456  ·  KH-000245  ·  Trần Thị Bình",
+          required: true, autofocus: true, autocomplete: "off",
+          aria: { invalid: @result.invalid? } %>
+    <%= f.button "🔍 Tra cứu", type: "submit", name: nil, class: "btn btn--primary" %>
+    <%= link_to "Làm mới", search_customers_path, class: "btn btn--reset" %>
+  </div>
+  <% if @result.invalid? %>
+    <%# Trường hợp C – Từ khóa không hợp lệ %>
+    <p class="error-text">⚠&#xFE0E; <%= @result.error %></p>
+  <% else %>
+    <p class="hint">SĐT: 10 chữ số, bắt đầu bằng 0 (FR01) · Mã KH: KH-000245 hoặc 245 · Tên: gõ có dấu hoặc không dấu đều được.</p>
+  <% end %>
+<% end %>
+
+<div class="cases">
+  <% if @result.found? %>
+    <% customer = @result.customer %>
+    <%# Trường hợp A – Tìm thấy đúng 1 khách hàng %>
+    <section>
+      <h3 class="case-title case-title--found">Tìm thấy khách hàng</h3>
+      <div class="card customer-card">
+        <div class="customer-card__head">
+          <div class="avatar"><%= customer.initials %></div>
+          <div class="customer-card__name"><b><%= customer.name %></b><br><span>Mã KH: <%= customer.code %></span></div>
+          <span class="badge badge--success">✓ Đã xác định</span>
+        </div>
+        <dl class="info-list">
+          <div class="info-list__row"><dt>Số điện thoại</dt><dd><%= format_phone(customer.phone) %></dd></div>
+          <div class="info-list__row"><dt>Email</dt><dd><%= customer.email.presence || "—" %></dd></div>
+          <div class="info-list__row"><dt>Địa chỉ</dt><dd><%= customer.address.presence || "—" %></dd></div>
+          <div class="info-list__row"><dt>Số yêu cầu trước đây</dt><dd><%= previous_requests_summary(customer) %></dd></div>
+        </dl>
+        <div class="customer-card__actions">
+          <%# BR01 – chỉ khi đã xác định khách hàng mới được sang bước tạo yêu cầu %>
+          <%= link_to "Chọn khách hàng & tiếp tục →", new_warranty_request_path(customer_id: customer.id),
+                      class: "btn btn--primary" %>
+          <button class="btn btn--history" type="button" disabled title="Sẽ bổ sung ở bước sau">Xem lịch sử</button>
+        </div>
+      </div>
+    </section>
+
+  <% elsif @result.multiple? %>
+    <%# Tìm theo tên ra nhiều khách hàng – nhân viên chọn đúng người %>
+    <section class="customer-list-section">
+      <h3 class="case-title case-title--found">Tìm thấy <%= @result.customers.size %> khách hàng phù hợp – chọn đúng khách hàng</h3>
+      <div class="card customer-list">
+        <% @result.customers.each do |customer| %>
+          <div class="customer-list__row">
+            <div class="avatar avatar--sm"><%= customer.initials %></div>
+            <div class="customer-list__info">
+              <b><%= customer.name %></b>
+              <span><%= customer.code %> · <%= format_phone(customer.phone) %></span>
+            </div>
+            <%= link_to "Chọn →", new_warranty_request_path(customer_id: customer.id), class: "btn btn--primary customer-list__pick" %>
+          </div>
+        <% end %>
+        <% if @result.customers.size >= CustomerLookupService::MAX_RESULTS %>
+          <p class="hint customer-list__more">Chỉ hiển thị <%= CustomerLookupService::MAX_RESULTS %> kết quả đầu tiên – hãy gõ tên đầy đủ hơn.</p>
+        <% end %>
+      </div>
+    </section>
+
+  <% elsif @result.not_found? %>
+    <%# Trường hợp B – Không tìm thấy khách hàng (UC08, BR07) %>
+    <section>
+      <h3 class="case-title case-title--notfound">Không tìm thấy khách hàng (UC08)</h3>
+      <div class="alert-notfound" role="alert">
+        <div class="alert-notfound__icon">⚠&#xFE0E;</div>
+        <div class="alert-notfound__body">
+          <p><b><%= not_found_message(@result) %></b></p>
+          <p>Vui lòng kiểm tra lại thông tin. Hệ thống <b>không cho phép tiếp tục tạo yêu cầu</b> khi chưa xác định được khách hàng (BR01, BR07).</p>
+        </div>
+        <%= link_to "Nhập lại", search_customers_path, class: "btn" %>
+      </div>
+    </section>
+  <% end %>
+</div>
