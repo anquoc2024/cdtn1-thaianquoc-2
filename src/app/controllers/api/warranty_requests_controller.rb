@@ -6,6 +6,7 @@
 #   PATCH /api/warranty_requests/:id/status  đổi trạng thái / hủy – S2
 #
 # Controller chỉ dịch HTTP ↔ service; quy tắc nghiệp vụ nằm trong các service dùng chung với giao diện.
+# TD-24: mọi endpoint cần token (xem BaseController); danh sách chỉ dành cho Quản lý trung tâm.
 module Api
   class WarrantyRequestsController < BaseController
     # Mã lỗi nghiệp vụ → mã HTTP
@@ -15,6 +16,8 @@ module Api
       closed:             [:conflict,             "YEU_CAU_DA_DONG"],
       invalid_transition: [422,                   "CHUYEN_TRANG_THAI_KHONG_HOP_LE"]
     }.freeze
+
+    before_action -> { require_permission!(:view_request_list) }, only: :index
 
     def index
       search = WarrantyRequestSearch.new(
