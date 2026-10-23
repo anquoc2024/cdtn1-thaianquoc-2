@@ -1,9 +1,12 @@
 require "test_helper"
 
-# S3 – Kiểm thử API JSON (/api/...)
+# S3 – Kiểm thử API JSON (/api/...) · TD-24: gọi API phải kèm header Authorization: Bearer <api_token>
 class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
+  self.auto_sign_in_as = nil   # API không dùng cookie đăng nhập, chỉ dùng token
+
   setup do
-    @user     = User.create!(full_name: "Nhân viên Test", role: :receptionist)
+    @user     = create_account(role: :receptionist, email: "nv-api@test.vn", full_name: "Nhân viên Test")
+    @manager  = create_account(role: :manager, email: "ql-api@test.vn", full_name: "Quản lý Test")
     @customer = Customer.create!(code: "KH-930001", name: "Khách API", phone: "0930000001")
     @category = IssueCategory.create!(name: "Màn hình")
     @priority = Priority.create!(name: "Cao", sla_hours: 24)
@@ -16,6 +19,8 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
   end
 
   def json = JSON.parse(response.body)
+
+  def auth(user = @user) = { "Authorization" => "Bearer #{user.api_token}" }
 
   def valid_body(overrides = {})
     { customer_id: @customer.id, device_type: "Điện thoại", brand: "Samsung", model: "Galaxy A55",
@@ -31,7 +36,7 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
   end
 
   test "GET /api/warranty_requests trả danh sách và thông tin phân trang" do
-    get api_warranty_requests_path
+    get api_warranty_requests_path, headers: auth(@manager)
     assert_response :ok
     assert_equal "BH-2099-000500", json["data"].first["code"]
     assert_equal true, json["data"].first["overdue"]
@@ -40,17 +45,17 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
   end
 
   test "GET /api/warranty_requests lọc theo trạng thái" do
-    get api_warranty_requests_path(status: "completed")
+    get api_warranty_requests_path(status: "completed"), headers: auth(@manager)
     assert_empty json["data"]
   end
 
   test "GET /api/warranty_requests/:id trả chi tiết; mã không tồn tại trả 404" do
-    get api_warranty_request_path(@existing)
+    get api_warranty_request_path(@existing), headers: auth
     assert_response :ok
     assert_equal "SN-API-001", json["data"]["device_detail"]["serial_number"]
     assert_equal %w[in_progress cancelled], json["data"]["allowed_next_statuses"]
 
-    get api_warranty_request_path(id: 999_999)
+    get api_warranty_request_path(id: 999_999), headers: auth
     assert_response :not_found
     assert_equal "KHONG_TIM_THAY", json["error"]
   end
@@ -58,7 +63,7 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
   # ---------- POST ----------
   test "POST tạo thành công: 201, header Location, mã BH, trạng thái received, hạn +24h" do
     assert_difference "WarrantyRequest.count", 1 do
-      post api_warranty_requests_path, params: valid_body, as: :json
+      post api_warranty_requests_path, params: valid_body, headers: auth, as: :json
     end
     assert_response :created
     created = WarrantyRequest.find(json["data"]["id"])
@@ -71,7 +76,7 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
 
   test "POST thiếu trường bắt buộc: 400, liệt kê tên trường" do
     assert_no_difference "WarrantyRequest.count" do
-      post api_warranty_requests_path, params: { customer_id: @customer.id }, as: :json
+      post api_warranty_requests_path, params: { customer_id: @customer.id }, headers: auth, as: :json
     end
     assert_response :bad_request
     assert_equal "DU_LIEU_KHONG_HOP_LE", json["error"]
@@ -81,48 +86,70 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
   end
 
   test "POST khách hàng không tồn tại: 404 (BR01)" do
-    post api_warranty_requests_path, params: valid_body(customer_id: 999_999), as: :json
+    post api_warranty_requests_path, params: valid_body(customer_id: 999_999), headers: auth, as: :json
     assert_response :not_found
     assert_equal "KHACH_HANG_KHONG_TON_TAI", json["error"]
   end
 
   test "POST serial đã thuộc khách hàng khác: 409 (NFR04)" do
     other = Customer.create!(code: "KH-930002", name: "Khách Khác", phone: "0930000002")
-    post api_warranty_requests_path, params: valid_body(customer_id: other.id, serial_number: "SN-API-001"), as: :json
+    post api_warranty_requests_path, params: valid_body(customer_id: other.id, serial_number: "SN-API-001"), headers: auth, as: :json
     assert_response :conflict
     assert_equal "SERIAL_THUOC_KHACH_KHAC", json["error"]
   end
 
   # ---------- PATCH ----------
   test "PATCH đổi trạng thái hợp lệ: 200, ghi lịch sử" do
-    patch status_api_warranty_request_path(@existing), params: { status: "in_progress" }, as: :json
+    patch status_api_warranty_request_path(@existing), params: { status: "in_progress" }, headers: auth, as: :json
     assert_response :ok
     assert_equal "in_progress", json["data"]["status"]
     assert_equal "Đang xử lý", json["data"]["status_logs"].last["to"]
   end
 
   test "PATCH nhảy cóc sang completed: 422" do
-    patch status_api_warranty_request_path(@existing), params: { status: "completed" }, as: :json
+    patch status_api_warranty_request_path(@existing), params: { status: "completed" }, headers: auth, as: :json
     assert_response 422
     assert_equal "CHUYEN_TRANG_THAI_KHONG_HOP_LE", json["error"]
   end
 
   test "PATCH hủy không có lý do: 400; yêu cầu đã đóng: 409" do
-    patch status_api_warranty_request_path(@existing), params: { status: "cancelled" }, as: :json
+    patch status_api_warranty_request_path(@existing), params: { status: "cancelled" }, headers: auth, as: :json
     assert_response :bad_request
     assert_equal "THIEU_LY_DO_HUY", json["error"]
 
-    patch status_api_warranty_request_path(@existing), params: { status: "cancelled", note: "Khách hủy" }, as: :json
+    patch status_api_warranty_request_path(@existing), params: { status: "cancelled", note: "Khách hủy" }, headers: auth, as: :json
     assert_response :ok
 
-    patch status_api_warranty_request_path(@existing), params: { status: "in_progress" }, as: :json
+    patch status_api_warranty_request_path(@existing), params: { status: "in_progress" }, headers: auth, as: :json
     assert_response :conflict
     assert_equal "YEU_CAU_DA_DONG", json["error"]
   end
 
   test "PATCH thiếu tham số status: 400" do
-    patch status_api_warranty_request_path(@existing), params: {}, as: :json
+    patch status_api_warranty_request_path(@existing), params: {}, headers: auth, as: :json
     assert_response :bad_request
     assert_equal "DU_LIEU_KHONG_HOP_LE", json["error"]
+  end
+
+  # ---------- Xác thực & phân quyền (TD-24) ----------
+  test "thiếu token hoặc sai token: 401 CHUA_XAC_THUC" do
+    get api_warranty_request_path(@existing)
+    assert_response :unauthorized
+    assert_equal "CHUA_XAC_THUC", json["error"]
+
+    get api_warranty_request_path(@existing), headers: { "Authorization" => "Bearer sai-token" }
+    assert_response :unauthorized
+  end
+
+  test "Nhân viên tiếp nhận gọi danh sách (UC07): 403 KHONG_CO_QUYEN" do
+    get api_warranty_requests_path, headers: auth(@user)
+    assert_response :forbidden
+    assert_equal "KHONG_CO_QUYEN", json["error"]
+  end
+
+  test "yêu cầu tạo qua API ghi người tạo là chủ token" do
+    post api_warranty_requests_path, params: valid_body, headers: auth, as: :json
+    assert_response :created
+    assert_equal @user, WarrantyRequest.find(json["data"]["id"]).created_by
   end
 end
