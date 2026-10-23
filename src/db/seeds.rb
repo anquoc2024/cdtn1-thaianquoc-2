@@ -60,3 +60,15 @@ Customer.find_by!(phone: "0905123456").update!(email: "binh.tran@gmail.com", add
 
 puts "Xong: #{User.count} người dùng, #{Customer.count} khách hàng, #{Device.count} thiết bị, " \
      "#{WarrantyRequest.count} yêu cầu (#{WarrantyRequest.overdue.count} quá hạn)."
+
+# ---------- Khách hàng từ bộ dữ liệu mẫu của giảng viên (300 dòng đầu customers_raw.csv) – TD-23 ----------
+result = CustomerCsvImporter.call
+puts "customers_raw: #{result.summary}"
+
+# ---------- Tài khoản đăng nhập (TD-24) – chỉ dùng cho môi trường phát triển / chấm bài ----------
+{ "Thái An Quốc" => "quoc@mekong.vn", "Võ Phạm Việt Phú" => "phu@mekong.vn" }.each do |name, email|
+  user = User.find_by!(full_name: name)
+  user.update!(email_address: email, password: "Mekong@2026") if user.password_digest.blank?
+  user.regenerate_api_token if user.api_token.blank?
+  puts "  #{user.role_label}: #{email} / Mekong@2026 · API token: #{user.api_token}"
+end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_100001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_090001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -60,11 +60,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_100001) do
     t.check_constraint "sla_hours > 0", name: "priorities_sla_hours_positive"
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address", limit: 45
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "full_name", limit: 100, null: false
     t.string "role", limit: 20, default: "receptionist", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "email_address", limit: 255
+    t.string "password_digest"
+    t.string "api_token", limit: 64
+    t.index ["api_token"], name: "index_users_on_api_token", unique: true
+    t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.check_constraint "role::text = ANY (ARRAY['receptionist'::character varying, 'manager'::character varying]::text[])", name: "users_role_check"
   end
 
@@ -103,6 +117,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_100001) do
   end
 
   add_foreign_key "devices", "customers"
+  add_foreign_key "sessions", "users"
   add_foreign_key "warranty_request_status_logs", "users", column: "changed_by_id"
   add_foreign_key "warranty_request_status_logs", "warranty_requests"
   add_foreign_key "warranty_requests", "devices"

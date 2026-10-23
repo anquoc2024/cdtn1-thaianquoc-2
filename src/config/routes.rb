@@ -2,6 +2,9 @@ Rails.application.routes.draw do
   # Kiểm tra ứng dụng còn chạy (Rails mặc định)
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Đăng nhập / đăng xuất (TD-24)
+  resource :session, only: %i[new create destroy]
+
   # Màn hình 1 – Tra cứu khách hàng (UC01, UC08)
   get "customers/search", to: "customers#search", as: :search_customers
 
@@ -16,7 +19,7 @@ Rails.application.routes.draw do
     resources :warranty_requests, only: [:index]
   end
 
-  # API JSON (TD-21) – gọi bằng curl / Postman
+  # API JSON (TD-21) – gọi bằng curl / Postman, xác thực bằng token (TD-24)
   namespace :api do
     get "health", to: "health#show"
     resources :warranty_requests, only: [:index, :show, :create] do

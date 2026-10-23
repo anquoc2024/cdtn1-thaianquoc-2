@@ -1,0 +1,81 @@
+<% content_for :title, "Đăng nhập – Trung tâm bảo hành" %>
+<%# Màn hình đăng nhập – bố cục theo mẫu auth-signin (Steex): khung trái giới thiệu, khung phải form (TD-24) %>
+
+<section class="auth-page">
+  <div class="auth-card">
+    <%# ---------- Khung trái ---------- %>
+    <div class="auth-card__intro">
+      <div class="auth-intro__head">
+        <h3>Tiếp nhận bảo hành nhanh, đúng hạn.</h3>
+        <p>Tra cứu khách hàng, tạo yêu cầu, theo dõi hạn cam kết và trạng thái xử lý trên cùng một hệ thống.</p>
+      </div>
+
+      <div class="auth-effect" aria-hidden="true">
+        <div class="auth-effect__circle auth-effect__circle--1">
+          <div class="auth-effect__circle auth-effect__circle--2">
+            <div class="auth-effect__circle auth-effect__circle--3">
+              <span>Mekong <b>Mobile</b></span>
+            </div>
+          </div>
+        </div>
+        <ul class="auth-effect__icons">
+          <li><i class="ph ph-device-mobile"></i></li>
+          <li><i class="ph ph-laptop"></i></li>
+          <li><i class="ph ph-headphones"></i></li>
+          <li><i class="ph ph-wrench"></i></li>
+          <li><i class="ph ph-clipboard-text"></i></li>
+        </ul>
+      </div>
+
+      <p class="auth-intro__foot">&copy; <%= Date.current.year %> Smart CRM – Mekong Mobile · Luồng L2</p>
+    </div>
+
+    <%# ---------- Khung phải: form đăng nhập ---------- %>
+    <div class="auth-card__form">
+      <div class="auth-form__head">
+        <i class="ph ph-wrench auth-form__logo" aria-hidden="true"></i>
+        <h1>Chào mừng trở lại</h1>
+        <p>Đăng nhập để vào hệ thống tiếp nhận yêu cầu bảo hành.</p>
+      </div>
+
+      <% flash.each do |type, message| %>
+        <div class="flash flash--<%= type %>" role="alert"><%= message %></div>
+      <% end %>
+
+      <%= form_with url: session_path, class: "auth-form" do |f| %>
+        <div class="auth-field">
+          <%= f.label :email_address, class: "auth-field__label" do %>Email <span class="req">*</span><% end %>
+          <%= f.email_field :email_address, value: @email_address, required: true, autofocus: true,
+                            autocomplete: "username", placeholder: "vd: quoc@mekong.vn", class: "auth-input" %>
+        </div>
+
+        <div class="auth-field" data-controller="password-toggle">
+          <%= f.label :password, class: "auth-field__label" do %>Mật khẩu <span class="req">*</span><% end %>
+          <div class="auth-input-group">
+            <%= f.password_field :password, required: true, autocomplete: "current-password", maxlength: 72,
+                                 placeholder: "Nhập mật khẩu", class: "auth-input",
+                                 data: { password_toggle_target: "input" } %>
+            <button type="button" class="auth-input-group__eye" aria-label="Hiện / ẩn mật khẩu"
+                    data-action="password-toggle#toggle">
+              <i class="ph ph-eye" data-password-toggle-target="icon" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <label class="auth-check">
+          <%= f.check_box :remember_me, {}, "1", "0" %>
+          <span>Ghi nhớ đăng nhập</span>
+        </label>
+
+        <%= f.button type: "submit", class: "auth-submit" do %>
+          <i class="ph ph-sign-in" aria-hidden="true"></i> Đăng nhập
+        <% end %>
+      <% end %>
+
+      <p class="auth-form__note">
+        Chưa có tài khoản hoặc quên mật khẩu? Liên hệ <b>Quản lý trung tâm</b> để được cấp lại.
+      </p>
+
+    </div>
+  </div>
+</section>

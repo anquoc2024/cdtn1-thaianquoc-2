@@ -1,6 +1,4 @@
-<%# Thanh tiêu đề – icon theo bộ Phosphor / Bootstrap Icons của template.
-    Hệ thống không có đăng nhập nên tên và vai trò hiển thị cố định theo wireframe. %>
-<% manager_page = controller_path.start_with?("manager/") %>
+<%# Thanh tiêu đề: tên + vai trò của người đang đăng nhập và nút Đăng xuất (TD-24) %>
 <header class="topbar">
   <div class="topbar__brand">
     <i class="ph ph-wrench topbar__logo" aria-hidden="true"></i>
@@ -9,18 +7,17 @@
   </div>
 
   <div class="topbar__right">
-    <% unless manager_page %>
-      <button type="button" class="topbar__icon-btn" aria-label="Thông báo" title="Thông báo">
-        <i class="bi bi-bell" aria-hidden="true"></i>
-      </button>
-    <% end %>
-
     <div class="topbar__profile">
-      <span class="topbar__avatar"><%= manager_page ? "VP" : "TQ" %></span>
+      <span class="topbar__avatar"><%= current_user.initials %></span>
       <span class="topbar__who">
-        <b><%= manager_page ? "Võ Phạm Việt Phú" : "Thái An Quốc" %></b>
-        <small><%= manager_page ? "Quản lý trung tâm" : "Nhân viên tiếp nhận" %></small>
+        <b><%= current_user.full_name %></b>
+        <small><%= current_user.role_label %></small>
       </span>
     </div>
+
+    <%= button_to session_path, method: :delete, class: "topbar__logout",
+                  form: { data: { turbo_confirm: "Đăng xuất khỏi hệ thống?" } } do %>
+      <i class="ph ph-sign-out" aria-hidden="true"></i><span>Đăng xuất</span>
+    <% end %>
   </div>
 </header>

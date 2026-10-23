@@ -1,0 +1,171 @@
+/* ============================================================
+   TD-24 – Màn hình đăng nhập (bố cục theo mẫu auth-signin của template Steex),
+   nút Đăng xuất trên thanh tiêu đề, mục sidebar bị khóa theo quyền
+   ============================================================ */
+
+/* ---------- Trang đăng nhập ---------- */
+.auth-body {
+  margin: 0;
+  min-height: 100vh;
+  background: #eef2f8;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #111827;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: 5fr 6fr;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(17, 24, 39, .08);
+  overflow: hidden;
+}
+
+/* Khung trái */
+.auth-card__intro {
+  background: linear-gradient(160deg, #1e5aa8 0%, #163f7a 100%);
+  color: #ffffff;
+  padding: 48px 36px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+}
+.auth-intro__head h3 { margin: 0 0 10px; font-size: 22px; font-weight: 600; }
+.auth-intro__head p  { margin: 0; opacity: .8; font-size: 14px; line-height: 1.5; }
+.auth-intro__foot    { margin: 0; opacity: .7; font-size: 12px; }
+
+.auth-effect {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 40px auto;
+}
+.auth-effect__circle {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .05);
+}
+.auth-effect__circle--1 { width: 300px; height: 300px; }
+.auth-effect__circle--2 { width: 220px; height: 220px; }
+.auth-effect__circle--3 {
+  width: 140px; height: 140px;
+  background: rgba(255, 255, 255, .12);
+  font-size: 18px;
+}
+.auth-effect__circle--3 b { color: #fcd34d; }
+
+.auth-effect__icons { list-style: none; margin: 0; padding: 0; }
+.auth-effect__icons li {
+  position: absolute;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #1e5aa8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
+}
+.auth-effect__icons li:nth-child(1) { top: 6px;    left: 120px; }
+.auth-effect__icons li:nth-child(2) { top: 84px;   right: -8px; }
+.auth-effect__icons li:nth-child(3) { bottom: 30px; right: 30px; }
+.auth-effect__icons li:nth-child(4) { bottom: 30px; left: 30px; }
+.auth-effect__icons li:nth-child(5) { top: 84px;   left: -8px; }
+
+/* Khung phải */
+.auth-card__form { padding: 56px 64px; }
+.auth-form__head { text-align: center; margin-bottom: 28px; }
+.auth-form__logo { font-size: 34px; color: #1e5aa8; }
+.auth-form__head h1 { margin: 8px 0 6px; font-size: 26px; }
+.auth-form__head p  { margin: 0; color: #6b7280; }
+
+.auth-form { display: flex; flex-direction: column; gap: 18px; margin-top: 16px; }
+.auth-field__label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #374151; }
+.auth-field__label .req { color: #dc2626; }
+
+.auth-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #ffffff;
+}
+.auth-input:focus { outline: none; border-color: #1e5aa8; box-shadow: 0 0 0 3px rgba(30, 90, 168, .15); }
+
+.auth-input-group { position: relative; }
+.auth-input-group .auth-input { padding-right: 46px; }
+.auth-input-group__eye {
+  position: absolute; top: 0; right: 0;
+  width: 44px; height: 44px;
+  border: 0; background: none; cursor: pointer;
+  color: #6b7280; font-size: 18px;
+}
+
+.auth-check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #374151; cursor: pointer; }
+
+.auth-submit {
+  height: 46px;
+  border: 0;
+  border-radius: 8px;
+  background: #1e5aa8;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.auth-submit:hover { background: #174a8c; }
+
+.auth-form__note { margin: 24px 0 0; text-align: center; font-size: 13px; color: #6b7280; }
+
+
+.auth-card__form .flash {
+  margin: 0 0 4px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .auth-card { grid-template-columns: 1fr; }
+  .auth-card__intro { display: none; }
+  .auth-card__form { padding: 40px 24px; }
+}
+
+/* ---------- Nút Đăng xuất trên thanh tiêu đề ---------- */
+.topbar__right form { margin: 0; }
+.topbar__logout {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .45);
+  border-radius: 6px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.topbar__logout:hover { background: rgba(255, 255, 255, .12); }
+.topbar__logout i { font-size: 16px; }
+
+/* ---------- Mục sidebar không có quyền (luôn hiện đủ 3 mục) ---------- */
+.nav__item--locked a { opacity: .5; }
+.nav__item--locked a:hover { opacity: .7; }
+.nav__lock { margin-left: auto; font-size: 14px; }
