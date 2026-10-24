@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
   # API JSON (TD-21) – gọi bằng curl / Postman, xác thực bằng token (TD-24)
   namespace :api do
+    resource :session, only: %i[create destroy]   # POST / DELETE /api/session – lấy token (TD-24)
     get "health", to: "health#show"
     resources :warranty_requests, only: [:index, :show, :create] do
       patch :status, on: :member, action: :update_status   # PATCH /api/warranty_requests/:id/status
