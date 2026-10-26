@@ -18,7 +18,8 @@ class ApiSessionsTest < ActionDispatch::IntegrationTest
     assert_equal @receptionist.api_token, json["data"]["token"]
     assert_equal "Bearer", json["data"]["token_type"]
     assert_equal "receptionist", json["data"]["user"]["role"]
-    assert_not_includes json["data"]["user"]["permissions"], "view_request_list"
+    assert_includes json["data"]["user"]["permissions"], "create_requests"
+    assert_includes json["data"]["user"]["permissions"], "view_request_list"
   end
 
   test "sai mật khẩu hoặc thiếu thông tin: 401 SAI_THONG_TIN_DANG_NHAP" do
@@ -30,12 +31,16 @@ class ApiSessionsTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "token lấy từ đăng nhập gọi được API theo đúng quyền" do
+  test "token lấy từ đăng nhập gọi được API theo đúng quyền (Quản lý chỉ xem)" do
     post api_session_path, params: { email_address: "phu@mekong.vn", password: PASSWORD }, as: :json
+    assert_equal %w[view_requests view_request_list], json["data"]["user"]["permissions"]
     token = json["data"]["token"]
 
     get api_warranty_requests_path, headers: { "Authorization" => "Bearer #{token}" }
     assert_response :ok
+
+    post api_warranty_requests_path, params: {}, headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    assert_response :forbidden
   end
 
   test "đăng xuất: 204, token cũ không dùng được nữa" do

@@ -28,11 +28,11 @@ module ActionDispatch
   class IntegrationTest
     include SignInHelper
 
-    # Mặc định mỗi test giao diện đăng nhập sẵn bằng tài khoản Quản lý (làm được mọi chức năng),
+    # Mặc định mỗi test giao diện đăng nhập sẵn bằng Nhân viên tiếp nhận (vai trò làm nghiệp vụ),
     # để các test nghiệp vụ cũ chạy như trước. Test cần trạng thái khác đặt:
-    #   self.auto_sign_in_as = nil            # chưa đăng nhập (test đăng nhập, test API)
-    #   self.auto_sign_in_as = :receptionist  # đăng nhập bằng Nhân viên tiếp nhận
-    class_attribute :auto_sign_in_as, default: :manager
+    #   self.auto_sign_in_as = nil       # chưa đăng nhập (test đăng nhập, test API)
+    #   self.auto_sign_in_as = :manager  # đăng nhập bằng Quản lý trung tâm (chỉ xem)
+    class_attribute :auto_sign_in_as, default: :receptionist
 
     setup do
       if auto_sign_in_as

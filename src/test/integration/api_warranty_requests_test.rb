@@ -141,10 +141,24 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "Nhân viên tiếp nhận gọi danh sách (UC07): 403 KHONG_CO_QUYEN" do
+  test "Nhân viên tiếp nhận xem được danh sách (UC07)" do
     get api_warranty_requests_path, headers: auth(@user)
+    assert_response :ok
+  end
+
+  test "Quản lý chỉ xem: tạo yêu cầu và đổi trạng thái đều 403 KHONG_CO_QUYEN" do
+    get api_warranty_request_path(@existing), headers: auth(@manager)
+    assert_response :ok
+
+    assert_no_difference "WarrantyRequest.count" do
+      post api_warranty_requests_path, params: valid_body, headers: auth(@manager), as: :json
+    end
     assert_response :forbidden
     assert_equal "KHONG_CO_QUYEN", json["error"]
+
+    patch status_api_warranty_request_path(@existing), params: { status: "in_progress" }, headers: auth(@manager), as: :json
+    assert_response :forbidden
+    assert_equal "received", @existing.reload.status
   end
 
   test "yêu cầu tạo qua API ghi người tạo là chủ token" do

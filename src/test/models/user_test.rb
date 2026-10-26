@@ -1,16 +1,18 @@
 require "test_helper"
 
-# TD-24 – tài khoản, mật khẩu và bảng phân quyền
+# TD-24 – tài khoản, mật khẩu và bảng phân quyền (theo User Story)
 class UserTest < ActiveSupport::TestCase
-  test "Quản lý có mọi quyền; Nhân viên tiếp nhận không xem được danh sách (UC07)" do
+  test "Nhân viên tiếp nhận làm toàn bộ nghiệp vụ; Quản lý chỉ xem danh sách và phiếu" do
     receptionist = User.new(full_name: "NV", role: :receptionist)
     manager      = User.new(full_name: "QL", role: :manager)
 
-    User::PERMISSIONS.each_key { |permission| assert manager.can?(permission), permission.to_s }
-    assert receptionist.can?(:lookup_customers)
-    assert receptionist.can?(:create_requests)
-    assert receptionist.can?(:change_status)
-    assert_not receptionist.can?(:view_request_list)
+    User::PERMISSIONS.each_key { |permission| assert receptionist.can?(permission), permission.to_s }
+
+    assert manager.can?(:view_request_list)
+    assert manager.can?(:view_requests)
+    assert_not manager.can?(:lookup_customers)
+    assert_not manager.can?(:create_requests)
+    assert_not manager.can?(:change_status)
   end
 
   test "email được chuẩn hóa về chữ thường, duy nhất; mật khẩu tối thiểu 8 ký tự" do
