@@ -4,14 +4,15 @@ class User < ApplicationRecord
 
   ROLE_LABELS = { "receptionist" => "Nhân viên tiếp nhận", "manager" => "Quản lý trung tâm" }.freeze
 
-  # Bảng phân quyền (TD-24): Quản lý làm được mọi việc của Nhân viên tiếp nhận,
-  # thêm quyền xem danh sách & thống kê yêu cầu (UC07).
+  # Bảng phân quyền (TD-24, theo User Story):
+  #   Nhân viên tiếp nhận – làm toàn bộ nghiệp vụ tiếp nhận và xem được danh sách
+  #   Quản lý trung tâm   – CHỈ XEM: danh sách, thống kê, phiếu tiếp nhận; không tạo, không đổi trạng thái
   PERMISSIONS = {
-    lookup_customers:  %w[receptionist manager],   # UC01, UC08
-    create_requests:   %w[receptionist manager],   # UC02–UC06
+    lookup_customers:  %w[receptionist],           # UC01, UC08
+    create_requests:   %w[receptionist],           # UC02–UC06
+    change_status:     %w[receptionist],           # UC09, UC10
     view_requests:     %w[receptionist manager],   # Phiếu tiếp nhận
-    change_status:     %w[receptionist manager],   # UC09, UC10
-    view_request_list: %w[manager]                 # UC07
+    view_request_list: %w[receptionist manager]    # UC07
   }.freeze
 
   # validations: false – tài khoản cũ / tạo trong test chưa có mật khẩu thì vẫn lưu được,

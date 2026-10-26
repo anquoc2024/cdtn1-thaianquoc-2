@@ -8,7 +8,6 @@
 module Authorization
   extend ActiveSupport::Concern
 
-  DENIED_MESSAGE = "Bạn không có quyền truy cập chức năng này. Chức năng chỉ dành cho Quản lý trung tâm.".freeze
 
   included do
     helper_method :can?
@@ -26,9 +25,13 @@ module Authorization
     Current.user.present? && Current.user.can?(permission)
   end
 
+  def denied_message
+    "Vai trò #{Current.user&.role_label} không có quyền dùng chức năng này."
+  end
+
   def authorize!(permission)
     return if can?(permission)
 
-    redirect_back_or_to home_path_for(Current.user), alert: DENIED_MESSAGE
+    redirect_back_or_to home_path_for(Current.user), alert: denied_message
   end
 end

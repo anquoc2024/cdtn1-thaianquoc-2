@@ -42,7 +42,9 @@
     <div class="card status-panel">
       <h2 class="card__title"><b>Cập nhật trạng thái</b></h2>
 
-      <% if request_record.closed? %>
+      <% if !can?(:change_status) %>
+        <p class="status-panel__closed">Vai trò <b><%= current_user.role_label %></b> chỉ được xem; việc đổi trạng thái do Nhân viên tiếp nhận thực hiện.</p>
+      <% elsif request_record.closed? %>
         <p class="status-panel__closed">Yêu cầu đã <b><%= WarrantyRequest::STATUS_LABELS[request_record.status].downcase %></b>, không thể đổi trạng thái nữa.</p>
       <% else %>
         <div class="status-panel__actions">
