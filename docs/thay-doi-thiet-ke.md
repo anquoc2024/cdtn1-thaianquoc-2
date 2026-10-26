@@ -219,3 +219,9 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
                     src/app/controllers/api/*, src/app/serializers/warranty_request_serializer.rb;
                     WarrantyRequestCreator trả thêm error_code; docs/api-docs.md (S4);
                     test api_warranty_requests_test.rb.
+
+### TD-23 Nạp khách hàng từ bộ dữ liệu mẫu customers_raw.csv
+- Phản hồi / nguồn : Buổi 8 yêu cầu nạp dữ liệu từ bộ mẫu của giảng viên. File customers_raw.csv có 67.037 dòng, dữ liệu bẩn: 4.133 dòng thiếu SĐT, SĐT ở nhiều định dạng (dấu chấm, khoảng trắng, +84, 84…), 10.239 SĐT bị trùng, 1.933 tên toàn chữ thường và 2.651 tên toàn chữ hoa.
+- Quyết định       : SỬA – thêm CustomerRowNormalizer (làm sạch 1 dòng), CustomerCsvImporter (gộp trùng SĐT, nạp trong 1 transaction, ghi danh sách dòng bị loại) và lệnh bin/rails import:customers. Đưa 300 dòng đầu vào src/db/data/customers_raw_mau.csv; db:seed nạp phần mẫu này. Giữ 8 khách hàng mẫu tự tạo.
+- Lý do            : customers.phone có UNIQUE và CHECK ^0[0-9]{9}$ (FR01, NFR04) nên phải chuẩn hóa và gộp trùng trước khi lưu. 300 dòng đủ để demo và chạy nhanh; file đầy đủ vẫn nạp được bằng rake. Mã KH-(100000 + record_id) không đụng các mã KH-000245… đang dùng trong ảnh chụp và tài liệu.
+- Ảnh hưởng        : Không đổi schema. Thêm 2 service, 1 rake task, gem csv, 10 test (52 → 62). Kết quả với 300 dòng mẫu: nạp 279, gộp trùng 1, loại 20 (thiếu SĐT).
