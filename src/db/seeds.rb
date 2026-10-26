@@ -17,16 +17,16 @@ categories = [
 
 # ---------- Khách hàng + thiết bị + yêu cầu (theo Màn hình 3) ----------
 # [mã KH, tên, SĐT, loại, hãng, model, serial, nhóm sự cố, ưu tiên, trạng thái, số giờ đến hạn]
-rows = [
-  ["KH-000245", "Trần Thị Bình",   "0905123456", "Điện thoại", "Samsung", "Galaxy A55",  "R58T20A0001", "Nguồn / Pin / Sạc", "Cao",        :received,    20],
-  ["KH-000246", "Phạm Văn Cường",  "0912345678", "Laptop",     "Dell",    "Inspiron",    "DL-INS-0002", "Màn hình",          "Trung bình", :in_progress, 30],
-  ["KH-000247", "Lê Thị Dung",     "0987654321", "Điện thoại", "Apple",   "iPhone 14",   "AP-IP14-0003","Phần mềm",          "Thấp",       :received,    60],
-  ["KH-000248", "Hoàng Minh Đức",  "0934111222", "Laptop",     "Acer",    "Aspire 7",    "AC-ASP-0004", "Cơ / Linh kiện",    "Khẩn cấp",   :in_progress, -10],
-  ["KH-000249", "Vũ Thu Hà",       "0978222333", "Điện thoại", "Apple",   "iPhone 16 Pro Max", "AP-IP16-0005", "Nguồn / Pin / Sạc", "Cao", :in_progress, 8],
-  ["KH-000250", "Ngô Gia Huy",     "0903444555", "Tai nghe",   "Sony",    "WH-1000XM5",  "SN-WH-0006",  "Âm thanh",          "Thấp",       :completed,   40],
-  ["KH-000251", "Đặng Mai Lan",    "0911666777", "Laptop",     "HP",      "Pavilion",    "HP-PAV-0007", "Bàn phím",          "Trung bình", :received,    -30],
-  ["KH-000252", "Bùi Quốc Khánh",  "0966888999", "Điện thoại", "Xiaomi",  "Redmi 13",    "XM-RM13-0008","Màn hình",          "Cao",        :in_progress, 12]
-]
+# rows = [
+#   ["KH-000245", "Trần Thị Bình",   "0905123456", "Điện thoại", "Samsung", "Galaxy A55",  "R58T20A0001", "Nguồn / Pin / Sạc", "Cao",        :received,    20],
+#   ["KH-000246", "Phạm Văn Cường",  "0912345678", "Laptop",     "Dell",    "Inspiron",    "DL-INS-0002", "Màn hình",          "Trung bình", :in_progress, 30],
+#   ["KH-000247", "Lê Thị Dung",     "0987654321", "Điện thoại", "Apple",   "iPhone 14",   "AP-IP14-0003","Phần mềm",          "Thấp",       :received,    60],
+#   ["KH-000248", "Hoàng Minh Đức",  "0934111222", "Laptop",     "Acer",    "Aspire 7",    "AC-ASP-0004", "Cơ / Linh kiện",    "Khẩn cấp",   :in_progress, -10],
+#   ["KH-000249", "Vũ Thu Hà",       "0978222333", "Điện thoại", "Apple",   "iPhone 16 Pro Max", "AP-IP16-0005", "Nguồn / Pin / Sạc", "Cao", :in_progress, 8],
+#   ["KH-000250", "Ngô Gia Huy",     "0903444555", "Tai nghe",   "Sony",    "WH-1000XM5",  "SN-WH-0006",  "Âm thanh",          "Thấp",       :completed,   40],
+#   ["KH-000251", "Đặng Mai Lan",    "0911666777", "Laptop",     "HP",      "Pavilion",    "HP-PAV-0007", "Bàn phím",          "Trung bình", :received,    -30],
+#   ["KH-000252", "Bùi Quốc Khánh",  "0966888999", "Điện thoại", "Xiaomi",  "Redmi 13",    "XM-RM13-0008","Màn hình",          "Cao",        :in_progress, 12]
+# ]
 
 rows.each_with_index do |(code, name, phone, type, brand, model, serial, category, priority, status, hours_left), index|
   customer = Customer.find_or_create_by!(phone: phone) do |c|
@@ -61,8 +61,8 @@ Customer.find_by!(phone: "0905123456").update!(email: "binh.tran@gmail.com", add
 puts "Xong: #{User.count} người dùng, #{Customer.count} khách hàng, #{Device.count} thiết bị, " \
      "#{WarrantyRequest.count} yêu cầu (#{WarrantyRequest.overdue.count} quá hạn)."
 
-# ---------- Khách hàng từ bộ dữ liệu mẫu của giảng viên (300 dòng đầu customers_raw.csv) – TD-23 ----------
-result = CustomerCsvImporter.call
+# ---------- Khách hàng từ data/ ở gốc repo (300 dòng đầu file dữ liệu của giảng viên) – TD-23 ----------
+result = CustomerCsvImporter.call(limit: CustomerCsvImporter::SEED_LIMIT)
 puts "customers_raw: #{result.summary}"
 
 # ---------- Tài khoản đăng nhập (TD-24) – chỉ dùng cho môi trường phát triển / chấm bài ----------
