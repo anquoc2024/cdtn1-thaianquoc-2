@@ -23,7 +23,7 @@ class WarrantyRequestStatusChanger
   end
 
   def initialize(warranty_request:, to_status:, changed_by:, note: nil)
-    @request    = warranty_request
+    @warranty_request    = warranty_request
     @to_status  = to_status.to_s
     @changed_by = changed_by
     @note       = note.to_s.strip.presence
@@ -35,18 +35,18 @@ class WarrantyRequestStatusChanger
 
     error_code = nil
 
-    @request.with_lock do                      # SELECT … FOR UPDATE
-      if @request.closed?
+    @warranty_request.with_lock do                      # SELECT … FOR UPDATE
+      if @warranty_request.closed?
         error_code = :closed
-      elsif !@request.allowed_next_statuses.include?(@to_status)
+      elsif !@warranty_request.allowed_next_statuses.include?(@to_status)
         error_code = :invalid_transition
       else
-        from_db_value = WarrantyRequest.statuses[@request.status]   # "new", "in_progress"…
-        @request.status    = @to_status
-        @request.closed_at = Time.current if @request.closed?
-        @request.save!
+        from_db_value = WarrantyRequest.statuses[@warranty_request.status]   # "new", "in_progress"…
+        @warranty_request.status    = @to_status
+        @warranty_request.closed_at = Time.current if @warranty_request.closed?
+        @warranty_request.save!
 
-        @request.status_logs.create!(
+        @warranty_request.status_logs.create!(
           from_status: from_db_value,
           to_status:   WarrantyRequest.statuses[@to_status],
           note:        @note,
@@ -57,15 +57,15 @@ class WarrantyRequestStatusChanger
 
     return failure(error_code) if error_code
 
-    Result.new(warranty_request: @request, error_code: nil, error: nil)
+    Result.new(warranty_request: @warranty_request, error_code: nil, error: nil)
   end
 
   private
 
   def failure(code)
     message = format(MESSAGES.fetch(code),
-                     from: WarrantyRequest::STATUS_LABELS[@request.status],
+                     from: WarrantyRequest::STATUS_LABELS[@warranty_request.status],
                      to:   WarrantyRequest::STATUS_LABELS[@to_status] || @to_status)
-    Result.new(warranty_request: @request, error_code: code, error: message)
+    Result.new(warranty_request: @warranty_request, error_code: code, error: message)
   end
 end

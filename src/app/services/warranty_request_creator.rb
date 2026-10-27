@@ -28,13 +28,13 @@ class WarrantyRequestCreator
   def call
     return failure(:invalid) unless @form.valid?   # BR04 – thiếu/sai thì không tạo
 
-    request = ActiveRecord::Base.transaction do
+    warranty_request = ActiveRecord::Base.transaction do
       update_customer_name!
       device   = find_or_create_device!
       priority = Priority.find(@form.priority_id)
       now      = Time.current
 
-      request = WarrantyRequest.create!(
+      warranty_request = WarrantyRequest.create!(
         code:              RequestCodeGenerator.next_code(year: now.year),
         device:            device,
         issue_category:    IssueCategory.find(@form.issue_category_id),
@@ -46,12 +46,12 @@ class WarrantyRequestCreator
       )
 
       # Dòng lịch sử đầu tiên: tiếp nhận yêu cầu
-      request.status_logs.create!(from_status: nil, to_status: WarrantyRequest.statuses[:received],
+      warranty_request.status_logs.create!(from_status: nil, to_status: WarrantyRequest.statuses[:received],
                                   note: "Tiếp nhận yêu cầu", changed_by: @created_by)
-      request
+      warranty_request
     end
 
-    Result.new(warranty_request: request, error_code: nil)
+    Result.new(warranty_request: warranty_request, error_code: nil)
   rescue DeviceOwnedByAnotherCustomer => e
     failure(:serial_taken, :serial_number, e.message)
   rescue ActiveRecord::RecordNotFound
