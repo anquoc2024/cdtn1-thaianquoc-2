@@ -3,16 +3,32 @@
 <div class="breadcrumb">Trang chủ › Danh sách yêu cầu bảo hành</div>
 <h1 class="page-title">Danh sách &amp; trạng thái yêu cầu bảo hành</h1>
 
-<%# ---------- Thẻ thống kê ---------- %>
-<div class="stats">
-  <div class="stat stat--total"><div class="stat__label">Tổng yêu cầu hôm nay</div><div class="stat__value"><%= @stats[:today] %></div></div>
-  <div class="stat stat--new"><div class="stat__label">Mới tiếp nhận</div><div class="stat__value"><%= @stats[:received] %></div></div>
-  <div class="stat stat--doing"><div class="stat__label">Đang xử lý</div><div class="stat__value"><%= @stats[:in_progress] %></div></div>
-  <div class="stat stat--overdue"><div class="stat__label">Quá hạn cam kết</div><div class="stat__value"><%= @stats[:overdue] %></div></div>
+<%# Bảng và thẻ thống kê tải lại qua GET /api/warranty_requests, GET /api/stats bằng api/client.js (TD-26); server render sẵn lần đầu %>
+<div data-controller="request-list" data-request-list-detail-url-value="<%= warranty_requests_path %>">
+
+<%# ---------- Thẻ thống kê: mỗi số kèm mốc so sánh ---------- %>
+<div class="stats" data-request-list-target="stats">
+  <div class="stat stat--total" data-stat="today">
+    <div class="stat__label">Tiếp nhận hôm nay</div><div class="stat__value"><%= @stats[:tiep_nhan_hom_nay][:so] %></div>
+    <div class="stat__ref">hôm qua: <%= @stats[:tiep_nhan_hom_nay][:moc][:so] %></div>
+  </div>
+  <div class="stat stat--new" data-stat="new">
+    <div class="stat__label">Mới tiếp nhận</div><div class="stat__value"><%= @stats[:moi_tiep_nhan][:so] %></div>
+    <div class="stat__ref">trên <%= @stats[:moi_tiep_nhan][:moc][:so] %> yêu cầu đang mở</div>
+  </div>
+  <div class="stat stat--doing" data-stat="doing">
+    <div class="stat__label">Đang xử lý</div><div class="stat__value"><%= @stats[:dang_xu_ly][:so] %></div>
+    <div class="stat__ref">trên <%= @stats[:dang_xu_ly][:moc][:so] %> yêu cầu đang mở</div>
+  </div>
+  <div class="stat stat--overdue" data-stat="overdue">
+    <div class="stat__label">Quá hạn cam kết</div><div class="stat__value"><%= @stats[:qua_han][:so] %></div>
+    <div class="stat__ref"><%= @stats[:qua_han][:ty_le] %>% số đang mở · mục tiêu: <%= @stats[:qua_han][:moc][:so] %></div>
+  </div>
 </div>
 
 <%# ---------- Bộ lọc (GET – giữ trên URL để chia sẻ / quay lại được) ---------- %>
-<%= form_with url: manager_warranty_requests_path, method: :get, class: "card filters" do |f| %>
+<%= form_with url: manager_warranty_requests_path, method: :get, class: "card filters",
+              data: { request_list_target: "form", action: "submit->request-list#filter" } do |f| %>
   <div class="field field--search">
     <%= f.label :q, "Tìm kiếm", class: "field__label" %>
     <%= f.search_field :q, value: @search.q, class: "input", placeholder: "🔍 Mã YC, tên KH, SĐT..." %>
@@ -56,6 +72,7 @@
 <% end %>
 
 <%# ---------- Bảng danh sách ---------- %>
+<div class="list-state" data-request-list-target="state"></div>
 <div class="card table-card">
   <table class="table">
     <thead>
@@ -71,7 +88,7 @@
         <th class="col-view"></th>
       </tr>
     </thead>
-    <tbody>
+    <tbody data-request-list-target="tbody">
       <% @warranty_requests.each do |item| %>
         <% customer = item.device.customer %>
         <tr class="<%= 'is-overdue' if item.overdue? %>">
@@ -89,7 +106,7 @@
               <%= item.due_at.strftime("%d/%m %H:%M") %>
             <% end %>
           </td>
-          <td class="col-view"><%= link_to "👁", warranty_request_path(item), class: "view-link", title: "Xem chi tiết" %></td>
+          <td class="col-view"><%= link_to warranty_request_path(item), class: "view-link", title: "Xem chi tiết" do %><i class="ph ph-eye" aria-hidden="true"></i><% end %></td>
         </tr>
       <% end %>
       <% if @warranty_requests.empty? %>
@@ -99,24 +116,26 @@
     </tbody>
   </table>
 
-  <div class="table-footer">
+  <div class="table-footer" data-request-list-target="footer" data-action="click->request-list#paginate">
     <span class="table-footer__info">
       Hiển thị <%= @search.first_index %>–<%= @search.last_index %> trên <%= @search.total_count %> yêu cầu · sắp xếp: <%= @search.sort_label %>
       <% if @search.filtered? %>
-        · <%= link_to "Xóa bộ lọc", manager_warranty_requests_path, class: "table-footer__reset" %>
+        · <%= link_to "Xóa bộ lọc", manager_warranty_requests_path, class: "table-footer__reset",
+                    data: { action: "request-list#clearFilters" } %>
       <% end %>
     </span>
     <ul class="pagination">
       <% current = @search.current_page %>
-      <li><%= current > 1 ? link_to("‹", page_path(current - 1), aria: { label: "Trang trước" }) : tag.span("‹", class: "is-disabled") %></li>
+      <li><%= current > 1 ? link_to("‹", page_path(current - 1), aria: { label: "Trang trước" }, data: { page: current - 1 }) : tag.span("‹", class: "is-disabled") %></li>
       <% page_window(current, @search.total_pages).each do |page| %>
         <% if page == :gap %>
           <li><span>…</span></li>
         <% else %>
-          <li><%= link_to page, page_path(page), class: ("is-current" if page == current), aria: { current: ("page" if page == current) } %></li>
+          <li><%= link_to page, page_path(page), class: ("is-current" if page == current), aria: { current: ("page" if page == current) }, data: { page: page } %></li>
         <% end %>
       <% end %>
-      <li><%= current < @search.total_pages ? link_to("›", page_path(current + 1), aria: { label: "Trang sau" }) : tag.span("›", class: "is-disabled") %></li>
+      <li><%= current < @search.total_pages ? link_to("›", page_path(current + 1), aria: { label: "Trang sau" }, data: { page: current + 1 }) : tag.span("›", class: "is-disabled") %></li>
     </ul>
   </div>
+</div>
 </div>
