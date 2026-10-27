@@ -1,8 +1,8 @@
 # Nạp khách hàng từ bộ dữ liệu mẫu của giảng viên (TD-23)
 #
-#   bin/rails import:customers                                  # toàn bộ data/customer.csv
-#   bin/rails "import:customers[/duong/dan/customers_raw.csv]"  # file đầy đủ
-#   bin/rails "import:customers[,1000]"                        # 1000 dòng đầu của data/customer.csv
+#   bin/rails import:customers                                  # bộ mẫu data/mau/customers_mau.csv
+#   bin/rails "import:customers[../data/customer.csv]"         # file đầy đủ của giảng viên (không commit)
+#   bin/rails "import:customers[../data/customer.csv,1000]"    # 1000 dòng đầu file đầy đủ
 namespace :import do
   desc "Nạp khách hàng từ customers_raw.csv (làm sạch, gộp trùng SĐT, ghi danh sách dòng bị loại)"
   task :customers, [:path, :limit] => :environment do |_task, args|

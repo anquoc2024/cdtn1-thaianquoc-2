@@ -10,7 +10,7 @@ require "csv"
 #      không đụng các mã KH-000245… của dữ liệu mẫu tự tạo
 #   6. Ghi danh sách dòng bị loại ra CSV (record_id, ly_do) nếu truyền reject_path
 class CustomerCsvImporter
-  DATA_PATH  = Rails.root.parent.join("data", "customer.csv")   # thư mục data/ ở gốc repo (theo yêu cầu GV)
+  DATA_PATH  = Rails.root.parent.join("data", "mau", "customers_mau.csv")   # bộ mẫu 300 dòng (data/mau/)
   SEED_LIMIT = 300                                             # db:seed chỉ nạp 300 dòng đầu
   CODE_OFFSET = 100_000
 

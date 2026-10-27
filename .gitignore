@@ -36,3 +36,7 @@ Thumbs.db
 # Tệp sao lưu tạm khi làm bài
 *.bak
 README.old.md
+
+# Dữ liệu lớn của giảng viên – KHÔNG commit (BT2: .gitignore chặn tệp dữ liệu lớn).
+# Chỉ commit bộ mẫu trong data/mau/ để hệ thống không lên trống trơn.
+/data/*.csv
