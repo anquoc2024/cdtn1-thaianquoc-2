@@ -7,16 +7,23 @@
 #     2. Cookie đăng nhập web + header X-Requested-With: XMLHttpRequest – api/client.js trên giao diện.
 #        Header bắt buộc này cùng cookie SameSite=Lax chặn trang web lạ gọi API thay người dùng (CSRF).
 #     thiếu / sai → 401 CHUA_XAC_THUC · không đủ quyền → 403 KHONG_CO_QUYEN
+# – Lỗi hệ thống (TD-27, xem SystemErrorHandling): mất CSDL → 503 · lỗi khác → 500, cả hai kèm mã tra cứu.
+#   rescue_from khai báo SAU được ưu tiên, nên StandardError đứng đầu, lỗi cụ thể đứng sau.
 module Api
   class BaseController < ActionController::API
     include ActionController::HttpAuthentication::Token::ControllerMethods
     include ActionController::Cookies
+    include SystemErrorHandling
 
     rescue_from StandardError do |exception|
-      Rails.logger.error("[API] #{exception.class}: #{exception.message}")
-      render_error(:internal_server_error, "LOI_HE_THONG",
-                   "Đã xảy ra lỗi không mong đợi. Vui lòng thử lại sau.",
-                   request_id: request.request_id)
+      log_system_error(exception, "LOI_HE_THONG")
+      render_error(:internal_server_error, "LOI_HE_THONG", internal_error_message, ma_tra_cuu: lookup_code)
+    end
+
+    rescue_from(*SystemErrorHandling::DATABASE_UNAVAILABLE_ERRORS) do |exception|
+      log_system_error(exception, "CSDL_KHONG_KHA_DUNG")
+      response.set_header("Retry-After", SystemErrorHandling::RETRY_AFTER_SECONDS.to_s)
+      render_error(:service_unavailable, "CSDL_KHONG_KHA_DUNG", database_unavailable_message, ma_tra_cuu: lookup_code)
     end
 
     rescue_from ActiveRecord::RecordNotFound do
@@ -59,7 +66,12 @@ module Api
                    "Vai trò #{current_user.role_label} không có quyền thực hiện thao tác này.")
     end
 
+    # Lỗi phía người dùng (4xx) ghi INFO – là tình huống bình thường, không phải sự cố.
+    # Lỗi 5xx đã được ghi ERROR một lần trong rescue_from ở trên.
     def render_error(status, code, message, chi_tiet = nil)
+      if Rack::Utils.status_code(status) < 500
+        Rails.logger.info("#{code} ma_tra_cuu=#{lookup_code} user_id=#{user_id_for_log || '-'} #{request.method} #{request.path}")
+      end
       body = { error: code, message: message }
       body[:chi_tiet] = chi_tiet if chi_tiet.present?
       render json: body, status: status

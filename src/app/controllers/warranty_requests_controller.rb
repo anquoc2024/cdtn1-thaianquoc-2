@@ -3,9 +3,6 @@ class WarrantyRequestsController < ApplicationController
   require_permission :create_requests, only: %i[new create]
   require_permission :view_requests,   only: :show
   require_permission :change_status,   only: :update_status
-  require_permission :create_requests, only: %i[new create]
-  require_permission :view_requests,   only: :show
-  require_permission :change_status,   only: :update_status
   before_action :set_customer, only: [:new, :create]
   before_action :load_options, only: [:new, :create]
 

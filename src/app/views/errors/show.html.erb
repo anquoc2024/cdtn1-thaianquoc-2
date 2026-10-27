@@ -1,0 +1,16 @@
+<main class="error-card" role="alert">
+  <p class="error-card__brand">TRUNG TÂM BẢO HÀNH · MEKONG MOBILE</p>
+  <p class="error-card__status">Lỗi <%= @status_code || response.status %></p>
+  <h1><%= @error_title %></h1>
+  <p><%= @error_message %></p>
+
+  <div class="lookup">
+    <span>Mã tra cứu (gửi kèm khi báo lỗi)</span>
+    <code><%= @lookup_code %></code>
+  </div>
+
+  <div class="actions">
+    <a class="btn btn--primary" href="<%= @retry_url %>">↻ Thử lại</a>
+    <a class="btn btn--ghost" href="/">Về trang chủ</a>
+  </div>
+</main>
