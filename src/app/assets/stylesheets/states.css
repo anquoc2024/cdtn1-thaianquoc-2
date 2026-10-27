@@ -1,0 +1,38 @@
+/* ============================================================
+   TD-26 – Ba trạng thái khi lấy dữ liệu qua API: đang tải · rỗng · lỗi (có nút Thử lại)
+   và mốc so sánh dưới thẻ thống kê
+   ============================================================ */
+.state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  text-align: left;
+}
+.state p { margin: 2px 0 0; color: var(--text-muted); }
+.state__icon { font-size: 26px; }
+.state--loading { color: var(--text-muted); }
+.state--empty   { border-style: dashed; }
+.state--empty .state__icon { color: var(--text-muted); }
+.state--error   { border-color: var(--red); background: var(--red-soft); color: var(--red-dark); }
+.state--error .state__icon { color: var(--red); }
+.state__retry   { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; }
+.state__spinner {
+  width: 18px; height: 18px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: state-spin .8s linear infinite;
+}
+@keyframes state-spin { to { transform: rotate(360deg); } }
+
+.table.is-loading tbody { opacity: .45; transition: opacity .15s; }
+.table__empty .state { margin: 6px auto; max-width: 560px; }
+
+/* Mốc so sánh dưới mỗi con số thống kê */
+.stat { height: auto; min-height: 84px; padding-bottom: 8px; }
+.stat__ref { font-size: 12px; color: var(--text-muted); }
