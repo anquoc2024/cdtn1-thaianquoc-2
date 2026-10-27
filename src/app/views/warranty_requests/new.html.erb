@@ -15,8 +15,22 @@
 </div>
 
 <div class="request-layout" data-controller="warranty-form">
-  <%= form_with model: @form, url: warranty_requests_path(customer_id: @customer.id),
-                class: "card request-form", data: { action: "input->warranty-form#refresh change->warranty-form#refresh" } do |f| %>
+  <%# Gửi qua POST /api/warranty_requests bằng api/client.js (TD-26); không có JS thì form vẫn gửi về server như cũ %>
+  <%= form_with model: @form, url: warranty_requests_path(customer_id: @customer.id), class: "card request-form",
+                data: { controller: "request-submit",
+                        request_submit_customer_id_value: @customer.id,
+                        request_submit_detail_url_value: warranty_requests_path,
+                        action: "input->warranty-form#refresh change->warranty-form#refresh submit->request-submit#submit" } do |f| %>
+
+    <div data-request-submit-target="banner" aria-live="assertive"></div>
+
+    <% if @issue_categories.empty? || @priorities.empty? %>
+      <%# Trạng thái rỗng: chưa có danh mục thì không thể phân loại (BR03) %>
+      <div class="form-errors" role="alert">
+        <b>Chưa có danh mục <%= @issue_categories.empty? ? "nhóm sự cố" : "mức ưu tiên" %>.</b>
+        Chạy <code>bin/rails db:seed</code> hoặc thêm nhóm sự cố qua <code>POST /api/issue_categories</code> rồi tải lại trang.
+      </div>
+    <% end %>
 
     <% if @form.errors.any? %>
       <div class="form-errors" role="alert">
@@ -138,7 +152,7 @@
       <%= link_to "Hủy", search_customers_path, class: "btn btn--cancel" %>
       <%= link_to "← Quay lại", search_customers_path(phone: @customer.phone), class: "btn btn--back" %>
       <%= f.button "✓ Tạo yêu cầu bảo hành", type: "submit", name: nil, class: "btn btn--primary",
-                   data: { turbo_submits_with: "Đang tạo..." } %>
+                   data: { turbo_submits_with: "Đang tạo...", request_submit_target: "submit" } %>
     </div>
   <% end %>
 
