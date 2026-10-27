@@ -2,11 +2,15 @@
 #
 # – Kế thừa ActionController::API: không có view, cookie, CSRF – chỉ nhận và trả JSON
 # – Mọi lỗi trả về cùng một dạng: {"error": "MA_LOI", "message": "...", "chi_tiet": {...}}
-# – Xác thực bằng token (TD-24): header Authorization: Bearer <users.api_token>
-#     thiếu / sai token → 401 CHUA_XAC_THUC · không đủ quyền → 403 KHONG_CO_QUYEN
+# – Xác thực (TD-24, TD-26), theo thứ tự:
+#     1. Token: header Authorization: Bearer <users.api_token>   – curl, Postman
+#     2. Cookie đăng nhập web + header X-Requested-With: XMLHttpRequest – api/client.js trên giao diện.
+#        Header bắt buộc này cùng cookie SameSite=Lax chặn trang web lạ gọi API thay người dùng (CSRF).
+#     thiếu / sai → 401 CHUA_XAC_THUC · không đủ quyền → 403 KHONG_CO_QUYEN
 module Api
   class BaseController < ActionController::API
     include ActionController::HttpAuthentication::Token::ControllerMethods
+    include ActionController::Cookies
 
     rescue_from StandardError do |exception|
       Rails.logger.error("[API] #{exception.class}: #{exception.message}")
@@ -33,10 +37,19 @@ module Api
       @current_user = authenticate_with_http_token do |token, _options|
         User.find_by(api_token: token) if token.present?
       end
+      @current_user ||= user_from_web_session
       return if @current_user
 
       render_error(:unauthorized, "CHUA_XAC_THUC",
                    "Thiếu hoặc sai token. Gửi header Authorization: Bearer <api_token>.")
+    end
+
+    # Giao diện web gọi API bằng fetch: dùng lại phiên đăng nhập (cookie session_id đã ký)
+    def user_from_web_session
+      return unless request.headers["X-Requested-With"] == "XMLHttpRequest"
+
+      session_id = cookies.signed[:session_id]
+      Session.find_by(id: session_id)&.user if session_id
     end
 
     def require_permission!(permission)
