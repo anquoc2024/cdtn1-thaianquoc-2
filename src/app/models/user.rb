@@ -12,7 +12,9 @@ class User < ApplicationRecord
     create_requests:   %w[receptionist],           # UC02–UC06
     change_status:     %w[receptionist],           # UC09, UC10
     view_requests:     %w[receptionist manager],   # Phiếu tiếp nhận
-    view_request_list: %w[receptionist manager]    # UC07
+    view_request_list: %w[receptionist manager],    # UC07
+    manage_customers:  %w[receptionist],           # CRUD Khách hàng (TD-25)
+    manage_catalog:    %w[receptionist]            # CRUD Nhóm sự cố (TD-25)
   }.freeze
 
   # validations: false – tài khoản cũ / tạo trong test chưa có mật khẩu thì vẫn lưu được,
