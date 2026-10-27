@@ -24,6 +24,8 @@ Rails.application.routes.draw do
     resource :session, only: %i[create destroy]   # POST / DELETE /api/session – lấy token (TD-24)
     resources :customers,        only: %i[index show create update destroy]   # CRUD Khách hàng (TD-25)
     resources :issue_categories, only: %i[index show create update destroy]   # CRUD Nhóm sự cố (TD-25)
+    resource  :stats,      only: :show    # GET /api/stats – thẻ thống kê có mốc so sánh (TD-26)
+    resources :priorities, only: :index   # GET /api/priorities – danh mục mức ưu tiên (TD-26)
     get "health", to: "health#show"
     resources :warranty_requests, only: [:index, :show, :create] do
       patch :status, on: :member, action: :update_status   # PATCH /api/warranty_requests/:id/status
