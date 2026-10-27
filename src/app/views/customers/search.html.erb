@@ -9,8 +9,12 @@
   <li class="step"><span class="step__num">3</span><span class="step__label">Phân loại &amp; tạo yêu cầu</span></li>
 </ol>
 
+<%# Dữ liệu lấy qua GET /api/customers bằng api/client.js (TD-26); không có JS thì form vẫn gửi về server như cũ %>
+<div data-controller="customer-lookup" data-customer-lookup-new-request-url-value="<%= new_warranty_request_path %>">
+
 <%# Ô tra cứu (UC01) – SĐT, mã khách hàng hoặc tên %>
-<%= form_with url: search_customers_path, method: :get, class: "card lookup" do |f| %>
+<%= form_with url: search_customers_path, method: :get, class: "card lookup",
+              data: { action: "submit->customer-lookup#search" } do |f| %>
   <h2 class="card__title"><b>Tìm khách hàng</b></h2>
   <%= f.label :q, class: "field__label lookup__label" do %>Số điện thoại, mã khách hàng hoặc tên <span class="req">*</span><% end %>
   <div class="lookup__row">
@@ -18,19 +22,20 @@
           class: ["input", ("input--error" if @result.invalid?)],
           placeholder: "VD: 0905 123 456  ·  KH-000245  ·  Trần Thị Bình",
           required: true, autofocus: true, autocomplete: "off",
-          aria: { invalid: @result.invalid? } %>
+          aria: { invalid: @result.invalid? }, data: { customer_lookup_target: "input" } %>
     <%= f.button "🔍 Tra cứu", type: "submit", name: nil, class: "btn btn--primary" %>
     <%= link_to "Làm mới", search_customers_path, class: "btn btn--reset" %>
   </div>
+  <% default_hint = "SĐT: 10 chữ số, bắt đầu bằng 0 (FR01) · Mã KH: KH-000245 hoặc 245 · Tên: gõ có dấu hoặc không dấu đều được." %>
   <% if @result.invalid? %>
     <%# Trường hợp C – Từ khóa không hợp lệ %>
-    <p class="error-text">⚠&#xFE0E; <%= @result.error %></p>
+    <p class="error-text" data-customer-lookup-target="hint" data-default-text="<%= default_hint %>">⚠&#xFE0E; <%= @result.error %></p>
   <% else %>
-    <p class="hint">SĐT: 10 chữ số, bắt đầu bằng 0 (FR01) · Mã KH: KH-000245 hoặc 245 · Tên: gõ có dấu hoặc không dấu đều được.</p>
+    <p class="hint" data-customer-lookup-target="hint" data-default-text="<%= default_hint %>"><%= default_hint %></p>
   <% end %>
 <% end %>
 
-<div class="cases">
+<div class="cases" data-customer-lookup-target="results" aria-live="polite">
   <% if @result.found? %>
     <% customer = @result.customer %>
     <%# Trường hợp A – Tìm thấy đúng 1 khách hàng %>
@@ -92,4 +97,5 @@
       </div>
     </section>
   <% end %>
+</div>
 </div>

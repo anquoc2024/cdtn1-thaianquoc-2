@@ -31,11 +31,11 @@ module Api
         customers, meta = paginate(Customer.order(created_at: :desc, id: :desc), per_page: PER_PAGE)
       end
 
-      render json: { data: customers.map { |customer| CustomerSerializer.call(customer) }, meta: meta }
+      render json: { data: customers.map { |customer| CustomerSerializer.call(customer, history: true) }, meta: meta }
     end
 
     def show
-      render json: { data: CustomerSerializer.call(@customer) }
+      render json: { data: CustomerSerializer.call(@customer, history: true) }
     end
 
     def create
