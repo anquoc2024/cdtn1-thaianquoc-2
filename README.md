@@ -8,6 +8,7 @@
 | Lớp | 261_71ITGR40203_06 |
 | Giảng viên | TS. Nguyễn Trí Hải |
 | Repo | https://github.com/anquoc2024/cdtn1-thaianquoc-2 |
+| Phiên bản nộp BT2 | tag [`v0.2`](https://github.com/anquoc2024/cdtn1-thaianquoc-2/releases/tag/v0.2) · báo cáo trong `BT2_2374802012635_ThaiAnQuoc/` · ảnh minh chứng trong `docs/screenshots/` |
 
 ## 1. Giới thiệu
 
@@ -123,13 +124,14 @@ Chạy **toàn bộ** bộ kiểm thử bằng **một lệnh** (trong thư mụ
 ```bash
 bin/rails test
 ```
-Kết quả đúng: dòng cuối có `0 failures, 0 errors`. Test tự dựng dữ liệu cần dùng, không phụ thuộc dữ liệu có sẵn trên máy.
+Kết quả đúng: dòng cuối có `115 runs, … 0 failures, 0 errors` (ảnh: `docs/screenshots/16-bin-rails-test-pass.png`). Test tự dựng dữ liệu cần dùng, không phụ thuộc dữ liệu có sẵn trên máy.
 
 | Thư mục | Kiểm tra gì |
 |---|---|
 | `src/test/models/` | Tài khoản, mật khẩu, bảng phân quyền |
 | `src/test/services/` | Quy tắc nghiệp vụ ở lớp service: sinh mã, tính hạn SLA, chuyển trạng thái, CRUD khách hàng / nhóm sự cố, làm sạch dữ liệu CSV |
-| `src/test/integration/` | Giao diện 3 màn hình, đăng nhập, phân quyền, API (mã HTTP, định dạng lỗi, token) |
+| `src/test/integration/` | Giao diện 3 màn hình, đăng nhập, phân quyền, API (mã HTTP, định dạng lỗi, token), xử lý lỗi hệ thống 500 / 503 |
+| `src/test/middleware/` | Lỗi mất CSDL xảy ra trước controller vẫn trả 503 có mã tra cứu |
 
 Ba loại kiểm thử theo yêu cầu BT2 (ví dụ):
 - **Luồng đúng:** tạo yêu cầu hợp lệ → 201, mã `BH-YYYY-NNNNNN`, hạn = lúc tạo + số giờ SLA.
@@ -151,6 +153,8 @@ Với server đang chạy ở một tab khác:
 | 5 | Lấy token: `curl -s -X POST localhost:3000/api/session -H "Content-Type: application/json" -d '{"email_address":"phu@mekong.vn","password":"Mekong@2026"}'` | `200` kèm `"token": "..."` |
 | 6 | `curl -s localhost:3000/api/warranty_requests -H "Authorization: Bearer <token>"` | Danh sách JSON có `data` và `meta.tong_so` ≥ 8 |
 | 7 | `curl -s -i localhost:3000/api/warranty_requests` (không token) | `401` với `"error":"CHUA_XAC_THUC"` |
+| 8 | `bash scripts/kiem-tra-api.sh` (ở gốc repo) | Dòng cuối: `Tổng: 40 ca · 40 PASS · 0 FAIL` |
+| 9 | `sudo service postgresql stop` rồi F5 trang web và gọi `curl -i localhost:3000/api/health` | Trang **"Hệ thống tạm thời không truy cập được dữ liệu"** và API `503`, cả hai có **mã tra cứu**; bật lại: `sudo service postgresql start` |
 
 ### API JSON
 
@@ -172,7 +176,32 @@ Xác thực bằng header `Authorization: Bearer <token>` (lấy ở `POST /api/
 | POST | `/api/warranty_requests` | Tạo yêu cầu bảo hành | Nhân viên tiếp nhận |
 | PATCH | `/api/warranty_requests/:id/status` | Đổi trạng thái / hủy kèm lý do | Nhân viên tiếp nhận |
 
-Postman: import tệp environment theo hướng dẫn trong `docs/api-docs.md`; script gọi thử 12 request: `bash docs/scripts/goi-api.sh`.
+### Kiểm tra toàn bộ API
+
+| Cách | Lệnh / thao tác | Kết quả mong đợi |
+|---|---|---|
+| Script curl (40 ca) | `bash scripts/kiem-tra-api.sh` (chạy ở gốc repo) | In PASS / FAIL từng ca; dòng cuối `40 PASS · 0 FAIL` |
+| Postman (40 request) | Import `docs/postman/SmartCRM_API_BT2.postman_collection.json` → chuột phải collection → **Run collection** | Toàn bộ test **Passed** (thư mục `00` tự đăng nhập và lưu token) |
+| Gọi thử từng request | `bash docs/scripts/goi-api.sh` | Ghi request / response thật vào `docs/api-ket-qua-thuc-te.md` |
+
+Thư mục `08` của collection và cuối script sẽ **đăng xuất**, làm token cũ hết hiệu lực – lấy token mới bằng `POST /api/session`.
+
+### Xử lý lỗi và log (TD-27)
+
+| Tình huống | API | Trang web |
+|---|---|---|
+| Lỗi nghiệp vụ / dữ liệu sai | `400 / 404 / 409 / 422` có mã lỗi riêng; log mức INFO | Thông báo ngay tại ô nhập |
+| Mất kết nối CSDL | `503 CSDL_KHONG_KHA_DUNG` + header `Retry-After: 30` | Trang 503 thân thiện có nút **Thử lại** |
+| Lỗi không lường trước | `500 LOI_HE_THONG` | Trang 500 (production, hoặc chạy `FRIENDLY_ERRORS=1 bin/rails server`) |
+
+- Mọi phản hồi 5xx kèm **mã tra cứu** (= `request_id`, cũng có trong header `X-Request-Id`); người dùng không thấy tên lớp lỗi, câu SQL hay ngăn xếp.
+- Mọi dòng log gắn mã tra cứu; mỗi sự cố ghi **ERROR đúng một lần**. Tìm đúng request: `grep "<mã tra cứu>" src/log/development.log`.
+- Log che mật khẩu, token, email, SĐT, địa chỉ và từ khóa tra cứu (`src/config/initializers/filter_parameter_logging.rb`).
+
+### Ảnh chụp minh chứng
+
+Ảnh chụp thật khi chạy hệ thống nằm trong [`docs/screenshots/`](docs/screenshots/) (28 ảnh, có mục lục):
+API bằng curl / Postman, kết quả kiểm thử, lỗi 503 khi tắt CSDL, và 3 trạng thái của từng màn hình.
 
 ## 6. Trạng thái hiện tại (Bài tập 2)
 
@@ -184,9 +213,11 @@ Postman: import tệp environment theo hướng dẫn trong `docs/api-docs.md`; 
 - [x] Tách lớp: controller (HTTP) → service (nghiệp vụ, không có dấu vết HTTP) → model (truy cập dữ liệu)
 - [x] 3 màn hình lấy dữ liệu qua API bằng `api/client.js`, đủ 3 trạng thái đang tải · rỗng · lỗi có nút Thử lại; thống kê có mốc so sánh (TD-26)
 - [x] Bộ kiểm thử đủ 3 loại (luồng đúng · giá trị biên · dữ liệu sai), chạy bằng `bin/rails test`
-- [x]Xử lý lỗi xuyên lớp theo Buổi 11: mã tra cứu cho lỗi 500, trả 503 khi mất CSDL, rà log không ghi dữ liệu nhạy cảm
-- [ ] Đóng gói Docker + docker-compose (chuẩn bị cho Bài tập 3)
-- [x] Cập nhật SRS, sơ đồ kiến trúc thực tế, Bug Log; tạo tag `v0.2`
+- [x] Xử lý lỗi xuyên lớp theo Buổi 11: mã tra cứu cho lỗi 500, trả 503 khi mất CSDL, che dữ liệu nhạy cảm trong log (TD-27)
+- [x] Bộ kiểm tra toàn bộ API: script curl `scripts/kiem-tra-api.sh` và Postman collection (40 ca)
+- [x] Báo cáo BT2 (`BT2_2374802012635_ThaiAnQuoc/`), ảnh minh chứng (`docs/screenshots/`) và tag `v0.2`
+- [ ] Đóng gói Docker + docker-compose, chạy bằng ≤ 2 lệnh (Bài tập 3)
+- [ ] Test plan, test report, Bug Log ≥ 3 lỗi; tài liệu triển khai và API bằng tiếng Anh; checklist bảo mật (Bài tập 3)
 
 **Hạn chế đã biết:** API token không tự hết hạn (chỉ đổi khi đăng xuất qua `DELETE /api/session`);
 giao diện không có màn hình riêng cho CRUD khách hàng / nhóm sự cố (thao tác qua API).
@@ -200,7 +231,7 @@ cdtn1-thaianquoc-2/
 ├── src/                          Ứng dụng Rails
 │   ├── app/
 │   │   ├── controllers/          LỚP ROUTES / CONTROLLER – nhận HTTP, gọi service, trả HTML / JSON
-│   │   │   ├── concerns/         Authentication (đăng nhập), Authorization (phân quyền)
+│   │   │   ├── concerns/         Authentication (đăng nhập), Authorization (phân quyền), SystemErrorHandling (lỗi 500 / 503)
 │   │   │   ├── api/              API JSON + crud_responses.rb (nơi duy nhất ánh xạ lỗi nghiệp vụ → mã HTTP)
 │   │   │   └── manager/          Màn hình 3
 │   │   ├── services/             LỚP NGHIỆP VỤ – quy tắc BR, KHÔNG có params / render / mã HTTP
@@ -210,15 +241,19 @@ cdtn1-thaianquoc-2/
 │   │   ├── serializers/          Định dạng JSON trả về
 │   │   ├── javascript/api/       client.js – lớp DUY NHẤT gọi API từ giao diện; ui.js – 3 trạng thái
 │   │   ├── javascript/controllers/  Stimulus cho 3 màn hình
-│   │   └── views/, helpers/, assets/  Giao diện
+│   │   └── views/, helpers/, assets/  Giao diện (views/errors + layouts/error: trang lỗi không gọi CSDL)
 │   ├── db/migrate/               Migration (dựng CSDL từ trống)
 │   ├── db/seeds.rb               Dữ liệu mẫu
 │   ├── lib/tasks/import.rake     Lệnh nạp khách hàng từ CSV
+│   ├── lib/middleware/           Lưới an toàn trả 503 khi mất CSDL trước controller
 │   ├── test/                     Bộ kiểm thử
 │   └── Gemfile.lock              Tệp khóa phiên bản
+├── BT1_2374802012635_ThaiAnQuoc/  Báo cáo Bài tập 1 (PDF, bản chỉnh sửa v2)
+├── BT2_2374802012635_ThaiAnQuoc/  Báo cáo Bài tập 2 (PDF + Word)
 ├── data/mau/customers_mau.csv    Bộ dữ liệu mẫu 300 dòng (tệp đầy đủ không commit)
 ├── db/schema.sql                 DDL đọc được, đối chiếu thiết kế
-├── docs/                         Tài liệu
+├── docs/                         Tài liệu · postman/ (collection kiểm thử API) · screenshots/ (ảnh minh chứng)
+├── scripts/kiem-tra-api.sh       Kiểm tra toàn bộ API bằng curl (40 ca)
 ├── .env.example                  Danh sách biến môi trường
 └── README.md
 ```
@@ -228,23 +263,13 @@ cdtn1-thaianquoc-2/
 | Tệp | Nội dung |
 |---|---|
 | `docs/srs.md` | Đặc tả yêu cầu (SRS) |
-| `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-26) |
+| `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-27) |
 | `docs/api-docs.md` | Tài liệu API JSON |
 | `docs/api-ket-qua-thuc-te.md` | Request / response thật, sinh bởi `docs/scripts/goi-api.sh` |
+| `docs/postman/SmartCRM_API_BT2.postman_collection.json` | Postman collection 40 request có test tự kiểm tra |
 | `docs/ai-disclosure.md` | Khai báo sử dụng công cụ AI |
-| `docs/screenshots/` | Ảnh chụp giao diện và kết quả chạy |
+| `docs/screenshots/` | 28 ảnh chụp thật: API, kiểm thử, lỗi 503, 3 màn hình (mục lục trong `README.md` của thư mục) |
 | `docs/*.drawio` | Sơ đồ Use Case, ERD, kiến trúc, wireframe |
 | `docs/wireframe-html/` | Bản HTML/CSS dựng từ wireframe |
+| `BT1_…/`, `BT2_…/` | Báo cáo Bài tập 1 và Bài tập 2 |
 
-## Phụ lục – Kiểm tra toàn bộ API
-
-Server phải đang chạy (`cd src && bin/rails server`). Tài khoản mẫu tạo bởi `bin/rails db:seed`.
-
-| Cách | Lệnh / thao tác | Kết quả mong đợi |
-|---|---|---|
-| Script curl (40 ca) | `bash scripts/kiem-tra-api.sh` (chạy ở gốc repo) | Dòng cuối: `Tổng: 40 ca · 40 PASS · 0 FAIL` |
-| Postman (40 request) | Import `docs/postman/SmartCRM_API_BT2.postman_collection.json` → chuột phải collection → Run collection | Toàn bộ test Passed |
-| Health check | `curl -i http://127.0.0.1:3000/api/health` | `200 {"status":"ok","db":"ok"}`; tắt PostgreSQL → `503` kèm `ma_tra_cuu` |
-
-Khi gặp lỗi 500/503, phản hồi API và trang lỗi đều có **mã tra cứu** (= `request_id`). Tìm đúng dòng log bằng:
-`grep "<mã tra cứu>" src/log/development.log` (TD-27).
