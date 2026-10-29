@@ -182,17 +182,7 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
 
 ---
 
-## Việc cần làm để tài liệu khớp với các quyết định trên
-
-| Tài liệu | Cập nhật theo | Trạng thái |
-|---|---|---|
-| docs/srs.md – FR01, FR09, FR10, US9, bảng truy vết | TD-03, TD-12, TD-13 | [ ] |
-| docs/srs.md – NFR05 ngoài phạm vi, UC01 luồng 5b, UC07 bỏ 2a, BR05 | TD-11, TD-12, TD-17 | [ ] |
-| docs/UseCase.drawio – actor UC05, chú thích ký hiệu | TD-05, TD-08 | [ ] |
-| docs/ERD.drawio – cột mới, status 3 giá trị, chú thích ký hiệu | TD-04, TD-05, TD-09 | [ ] |
-| docs/architecture.drawio – bỏ Devise/Pundit, thêm forms/queries, PostgreSQL 18 | TD-11, TD-16, TD-19 | [ ] |
-| docs/Wireframe.drawio – màn hình 1, 2, 3 | TD-12, TD-13, TD-14, TD-15 | [ ] |
-| .gitignore, .env.example, docs/api-docs.md, README | TD-07 | [ ] |
+### D. Bài tập 2 – hiện thực module cốt lõi
 
 ### TD-21  Thêm API JSON bên cạnh giao diện HTML
 - Phản hồi của GV : (yêu cầu buổi 8 – track SE) Gọi thử endpoint bằng Postman hoặc curl; thiết kế BT1 chỉ có
@@ -207,6 +197,7 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
                     src/app/controllers/api/*, src/app/serializers/warranty_request_serializer.rb;
                     WarrantyRequestCreator trả thêm error_code; docs/api-docs.md (S4);
                     test api_warranty_requests_test.rb.
+                    (Đã khắc phục ở TD-24: API xác thực bằng token.)
 
 ### TD-23 Nạp khách hàng từ bộ dữ liệu mẫu customers_raw.csv
 - Phản hồi / nguồn : Buổi 8 yêu cầu nạp dữ liệu từ bộ mẫu của giảng viên. File customers_raw.csv có 67.037 dòng, dữ liệu bẩn: 4.133 dòng thiếu SĐT, SĐT ở nhiều định dạng (dấu chấm, khoảng trắng, +84, 84…), 10.239 SĐT bị trùng, 1.933 tên toàn chữ thường và 2.651 tên toàn chữ hoa.
@@ -214,27 +205,105 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
 - Lý do            : customers.phone có UNIQUE và CHECK ^0[0-9]{9}$ (FR01, NFR04) nên phải chuẩn hóa và gộp trùng trước khi lưu. 300 dòng đủ để demo và chạy nhanh; file đầy đủ vẫn nạp được bằng rake. Mã KH-(100000 + record_id) không đụng các mã KH-000245… đang dùng trong ảnh chụp và tài liệu.
 - Ảnh hưởng        : Không đổi schema. Thêm 2 service, 1 rake task, gem csv, 10 test (52 → 62). Kết quả với 300 dòng mẫu: nạp 279, gộp trùng 1, loại 20 (thiếu SĐT).
 
-### TD-25 Bổ sung CRUD đầy đủ cho Khách hàng và Nhóm sự cố
-- Thay đổi gì : Thêm 10 API (GET danh sách, GET chi tiết, POST, PATCH, DELETE) cho customers và issue_categories; service CustomerService, IssueCategoryService (lớp nghiệp vụ, không có dấu vết HTTP); quyền manage_customers, manage_catalog chỉ cho Nhân viên tiếp nhận. Quy tắc mới: BR12 mã KH tự sinh KH-NNNNNN (dải 000001–099999, tách khỏi dải 1xxxxx của dữ liệu CSV), BR13 không xóa khách hàng đã có thiết bị, BR14 không xóa nhóm sự cố đang được dùng.
-- Vì sao      : BT2 yêu cầu ≥ 2 thực thể có đủ 4 thao tác CRUD (mục S1). Yêu cầu bảo hành giữ nguyên "hủy kèm lý do, không xóa" (FR12) nên chọn 2 thực thể danh mục có thể xóa an toàn khi chưa có dữ liệu phụ thuộc. Quản lý vẫn chỉ xem theo User Story.
-- Ảnh hưởng   : routes.rb (namespace api), User::PERMISSIONS, thêm 4 service, 2 serializer, 2 controller API; 16 test mới; SRS cần thêm US12, US13, FR13, FR14, BR12–BR14; api-docs thêm 10 endpoint.
+### TD-24  Đăng nhập bằng email + mật khẩu và phân quyền theo vai trò
+- Phản hồi của GV : (yêu cầu BT2) Hệ thống có 2 vai trò nhưng BT1 tạm bỏ xác thực (TD-11: DefaultCurrentUser,
+                    NFR05 ngoài phạm vi) nên ai cũng làm được mọi chức năng; API ở TD-21 không xác thực.
+- Quyết định      : SỬA – dùng bộ sinh mã authentication của Rails 8 (không dùng Devise): bảng sessions,
+                    users thêm email_address, password_digest (bcrypt), api_token; concern Authentication,
+                    Authorization; bảng quyền User::PERMISSIONS; API nhận token Bearer (POST/DELETE /api/session)
+                    hoặc phiên web kèm header X-Requested-With; giới hạn số lần đăng nhập sai (rate_limit).
+- Lý do           : NFR05 yêu cầu 100% chức năng kiểm tra đúng vai trò. Bộ sinh mã của Rails 8 đủ cho 2 vai trò,
+                    ít phụ thuộc hơn Devise / Pundit; token cho phép kiểm thử API bằng curl / Postman.
+                    Sai / thiếu token → 401 CHUA_XAC_THUC; không đủ quyền → 403 KHONG_CO_QUYEN.
+- Ảnh hưởng       : 2 migration (users, sessions); SessionsController, Api::SessionsController, Api::BaseController;
+                    sidebar khóa mục không có quyền; seeds tạo 2 tài khoản demo; test đăng nhập, phân quyền;
+                    NFR05 đưa lại vào phạm vi; sơ đồ kiến trúc bỏ Devise / Pundit. Bảng quyền mở rộng ở TD-29.
 
-### TD-26 Giao diện lấy dữ liệu qua API bằng lớp client riêng
-- Thay đổi gì : Thêm app/javascript/api/client.js là nơi duy nhất giao diện gọi API (timeout 8 s, GET thử lại tối đa 2 lần có giãn cách, lỗi chuẩn hóa thành ApiError). Api::BaseController nhận thêm phiên đăng nhập web khi có header X-Requested-With. Thêm GET /api/stats (mỗi số liệu kèm mốc so sánh: hôm qua, tổng đang mở, mục tiêu quá hạn = 0) và GET /api/priorities. Ba màn hình chuyển sang lấy dữ liệu từ API, hiển thị đủ ba trạng thái đang tải · rỗng · lỗi kết nối có nút Thử lại.
-- Vì sao      : BT2 mục S4 yêu cầu ≥ 3 màn hình lấy dữ liệu từ API thật qua một lớp client riêng và xử lý đủ ba trạng thái; số liệu trình bày phải có mốc so sánh. Thiết kế BT1 render dữ liệu ở server (ERB) nên chưa đáp ứng.
-- Ảnh hưởng   : Api::BaseController, routes.rb, config/importmap.rb, thêm query DashboardStats, 2 controller API, client.js và các Stimulus controller của 3 màn hình; 4 test mới; sơ đồ kiến trúc thực tế thêm tầng "API client (JS)".
+### TD-25  Bổ sung CRUD đầy đủ cho Khách hàng và Nhóm sự cố
+- Phản hồi của GV : (yêu cầu BT2 – mục S1) Cần ≥ 2 thực thể có đủ 4 thao tác CRUD qua 3 lớp.
+- Quyết định      : SỬA – thêm 10 API (GET danh sách, GET chi tiết, POST, PATCH, DELETE) cho customers và
+                    issue_categories; service CustomerService, IssueCategoryService (không có dấu vết HTTP);
+                    quyền manage_customers, manage_catalog cho Nhân viên tiếp nhận. Quy tắc mới: BR12 mã KH tự sinh
+                    KH-NNNNNN (dải 000001–099999), BR13 không xóa khách đã có thiết bị, BR14 không xóa nhóm sự cố
+                    đang được dùng.
+- Lý do           : Chọn 2 thực thể danh mục xóa được an toàn khi chưa có dữ liệu phụ thuộc; dải mã riêng không đụng
+                    dải 1xxxxx của dữ liệu CSV.
+- Ảnh hưởng       : routes.rb (namespace api), User::PERMISSIONS, 4 service, 2 serializer, 2 controller API;
+                    16 test mới; SRS thêm US12, US13, FR13, FR14, BR12–BR14; api-docs thêm 10 endpoint.
 
-### TD-27 Xử lý lỗi hệ thống thống nhất: mã tra cứu, 503 khi mất CSDL (Buổi 11)
-- Thay đổi gì : Concern SystemErrorHandling dùng chung cho web và API: mất CSDL → 503 CSDL_KHONG_KHA_DUNG + Retry-After; lỗi khác → 500 LOI_HE_THONG; cả hai kèm mã tra cứu = request_id. Middleware DatabaseUnavailableResponder bắt lỗi mất CSDL xảy ra trước controller. Trang lỗi riêng (layout không gọi CSDL) có nút Thử lại. Mọi dòng log gắn request_id; mỗi sự cố ghi ERROR một lần, lỗi 4xx ghi INFO; che phone, address, email, q, token, mật khẩu trong log.
-- Vì sao      : Buổi 11 – dịch lỗi ở ranh giới, ghi log một lần ở lớp trên cùng, không lộ chi tiết kỹ thuật, người dùng có mã để báo lỗi.
-- Ảnh hưởng   : Api::BaseController, Api::HealthController, ApplicationController, config/application.rb, filter_parameter_logging.rb; thêm concern, middleware, views/errors, layouts/error; 6 test mới (109 → 115).
+### TD-26  Giao diện lấy dữ liệu qua API bằng lớp client riêng
+- Phản hồi của GV : (yêu cầu BT2 – mục S4) ≥ 3 màn hình lấy dữ liệu từ API thật qua một lớp client riêng, đủ ba
+                    trạng thái đang tải · rỗng · lỗi; số liệu phải có mốc so sánh. BT1 render ở server (ERB).
+- Quyết định      : SỬA – app/javascript/api/client.js là nơi duy nhất gọi API (timeout 8 s, GET thử lại tối đa
+                    2 lần có giãn cách, lỗi chuẩn hóa thành ApiError); thêm GET /api/stats (mỗi số kèm mốc: hôm qua,
+                    tổng đang mở, mục tiêu quá hạn = 0) và GET /api/priorities; 3 màn hình chuyển sang gọi API.
+- Lý do           : Tách giao diện khỏi cách lấy dữ liệu; POST / PATCH không tự thử lại để tránh tạo trùng.
+- Ảnh hưởng       : Api::BaseController nhận phiên web; routes.rb, importmap.rb, query DashboardStats,
+                    2 controller API, Stimulus controller của 3 màn hình; 4 test mới; sơ đồ kiến trúc thêm
+                    tầng "API client (JS)".
 
-### TD-28 Dữ liệu mẫu lấy từ bộ dữ liệu L2 của giảng viên thay cho dữ liệu tự tạo
-- Thay đổi gì : Bỏ 8 khách / thiết bị / yêu cầu viết tay trong db/seeds.rb; thêm L2DatasetImporter và rake import:l2 nạp data/mau/ issue_categories.csv, customers.csv, products.csv, devices.csv, tickets.csv. Khách tìm theo SĐT (chuẩn hóa +84 → 0), mã mới KH-(100000 + customer_id); thiết bị tìm theo serial, hãng / model / loại suy ra từ tên sản phẩm; phiếu thành yêu cầu Mới tiếp nhận, giờ tạo = lúc nạp − hours_ago, hạn = giờ tạo + SLA (BR06). Dòng lỗi (SĐT sai, thiếu ngày mua – BR02, serial của khách khác) bị loại kèm lý do. service_centers.csv, warranty_months, is_warranty chưa nạp vì thiết kế hiện tại không có bảng trung tâm và cột thời hạn bảo hành.
-- Vì sao      : Dữ liệu demo và chấm bài phải là dữ liệu thật của đề, có sẵn yêu cầu quá hạn để Màn hình 3 hiển thị đúng. Sửa luôn lỗi seeds: mảng rows bị chú thích nhưng vòng lặp rows.each vẫn chạy nên db:seed dừng giữa chừng (không tạo tài khoản đăng nhập trên máy mới).
-- Ảnh hưởng   : Không đổi schema. db/seeds.rb, lib/tasks/import.rake, thêm service L2DatasetImporter và 3 test. Sau seed trên CSDL trống: 310 khách, 31 thiết bị, 30 yêu cầu (khoảng 18 quá hạn), loại 7 dòng.
+### TD-27  Xử lý lỗi hệ thống thống nhất: mã tra cứu, 503 khi mất CSDL
+- Phản hồi của GV : (Buổi 11) Dịch lỗi ở ranh giới, ghi log đúng một lần ở lớp trên cùng, không lộ chi tiết kỹ thuật;
+                    5xx phải kèm mã tra cứu; mất CSDL trả 503.
+- Quyết định      : SỬA – concern SystemErrorHandling dùng chung web và API: mất CSDL → 503 CSDL_KHONG_KHA_DUNG
+                    + Retry-After; lỗi khác → 500 LOI_HE_THONG; mã tra cứu = request_id. Middleware
+                    DatabaseUnavailableResponder bắt lỗi mất CSDL xảy ra trước controller. Trang lỗi riêng có nút
+                    Thử lại. Mọi dòng log gắn request_id; lỗi 4xx ghi INFO; che phone, address, email, q, token,
+                    mật khẩu trong log.
+- Lý do           : Người dùng chỉ thấy câu thông báo chung + mã tra cứu; kỹ sư dùng mã đó tìm đúng dòng log.
+- Ảnh hưởng       : Api::BaseController, Api::HealthController, ApplicationController, config/application.rb,
+                    filter_parameter_logging.rb; thêm concern, middleware, views/errors, layouts/error;
+                    6 test mới (109 → 115).
 
-### TD-29 Mở rộng quyền: Quản lý tra cứu và tạo yêu cầu; Nhân viên tiếp nhận sửa và xóa yêu cầu
-- Thay đổi gì : User::PERMISSIONS – lookup_customers, create_requests cho cả hai vai trò; thêm edit_requests, delete_requests chỉ cho Nhân viên tiếp nhận. Thêm form WarrantyRequestEditForm, service WarrantyRequestUpdater (sửa thiết bị, mô tả lỗi, nhóm sự cố, mức ưu tiên; đổi ưu tiên thì hạn = lúc tiếp nhận + SLA mới – BR06; ghi một dòng lịch sử "Cập nhật thông tin") và WarrantyRequestDestroyer (xóa yêu cầu kèm lịch sử, giữ thiết bị và khách hàng, ghi log INFO). Giao diện: nút Sửa yêu cầu / Xóa yêu cầu trên phiếu tiếp nhận, màn hình sửa. API: PATCH và DELETE /api/warranty_requests/:id.
-- Vì sao      : Theo yêu cầu điều chỉnh nghiệp vụ: Quản lý trung tâm cần tự tiếp nhận khi đông khách; Nhân viên tiếp nhận cần sửa thông tin nhập sai và xóa yêu cầu tạo nhầm. Sửa / xóa không giới hạn theo trạng thái. Không cho đổi khách hàng và số serial để giữ đúng BR11 (một serial chỉ thuộc một khách).
-- Ảnh hưởng   : Không đổi schema. Thay đổi FR12 (trước đây "hủy kèm lý do, không xóa"): nay xóa được, mất lịch sử của yêu cầu đã xóa – chỉ còn dòng log XOA_YEU_CAU. SRS cần sửa User Story / Use Case của Quản lý (thêm UC01, UC06), thêm US/FR sửa – xóa yêu cầu. routes.rb, User, 2 controller, show.html.erb, edit.html.erb mới; cập nhật 4 tệp test, thêm 2 tệp test mới.
+### TD-28  Dữ liệu mẫu lấy từ bộ dữ liệu L2 của giảng viên thay cho dữ liệu tự tạo
+- Phản hồi của GV : (bộ dữ liệu L2 của đề) data/mau/ có issue_categories, customers, products, devices, tickets,
+                    service_centers. Phát hiện kèm: db:seed dừng giữa chừng vì mảng rows bị chú thích nhưng vòng
+                    lặp rows.each vẫn chạy – máy mới không có tài khoản đăng nhập.
+- Quyết định      : SỬA – bỏ 8 khách / thiết bị / yêu cầu viết tay; thêm L2DatasetImporter và rake import:l2.
+                    Khách tìm theo SĐT (+84 → 0), mã mới KH-(100000 + customer_id); thiết bị tìm theo serial,
+                    hãng / model / loại suy từ tên sản phẩm; phiếu thành yêu cầu Mới tiếp nhận, giờ tạo = lúc nạp
+                    − hours_ago, hạn = giờ tạo + SLA (BR06). Dòng lỗi bị loại kèm lý do.
+- Lý do           : Dữ liệu demo phải là dữ liệu thật của đề, có sẵn yêu cầu quá hạn cho Màn hình 3.
+                    service_centers.csv, warranty_months, is_warranty chưa nạp vì thiết kế chưa có bảng trung tâm
+                    và cột thời hạn bảo hành.
+- Ảnh hưởng       : Không đổi schema. db/seeds.rb, lib/tasks/import.rake, service L2DatasetImporter, 3 test.
+                    Seed trên CSDL trống: 310 khách, 31 thiết bị, 30 yêu cầu (khoảng 18 quá hạn), loại 7 dòng.
+
+### E. Sau Bài tập 2
+
+### TD-29  Mở rộng quyền: Quản lý tra cứu và tạo yêu cầu; Nhân viên tiếp nhận sửa và xóa yêu cầu
+- Phản hồi của GV : (điều chỉnh nghiệp vụ sau BT2) Quản lý trung tâm cần tự tiếp nhận khi đông khách; Nhân viên
+                    tiếp nhận cần sửa thông tin nhập sai và xóa yêu cầu tạo nhầm.
+- Quyết định      : SỬA – User::PERMISSIONS: lookup_customers, create_requests cho cả hai vai trò; thêm
+                    edit_requests, delete_requests chỉ cho Nhân viên tiếp nhận. Thêm WarrantyRequestEditForm,
+                    WarrantyRequestUpdater (sửa thiết bị, mô tả lỗi, nhóm sự cố, mức ưu tiên; đổi ưu tiên thì hạn =
+                    lúc tiếp nhận + SLA mới – BR06; ghi dòng lịch sử "Cập nhật thông tin") và WarrantyRequestDestroyer
+                    (xóa yêu cầu kèm lịch sử, giữ thiết bị và khách hàng, ghi log XOA_YEU_CAU). Giao diện: nút
+                    Sửa yêu cầu / Xóa yêu cầu trên phiếu tiếp nhận, màn hình sửa. API: PATCH và DELETE
+                    /api/warranty_requests/:id. Sửa / xóa không giới hạn theo trạng thái.
+- Lý do           : Không cho đổi khách hàng và số serial để giữ BR11 (một serial chỉ thuộc một khách). Quản lý
+                    vẫn không đổi trạng thái, không sửa / xóa để tách người tiếp nhận và người giám sát.
+- Ảnh hưởng       : Không đổi schema. Thay đổi FR12 (trước: "hủy kèm lý do, không xóa") – nay xóa được, mất lịch sử
+                    của yêu cầu đã xóa. SRS sửa User Story / Use Case của Quản lý (thêm UC01, UC06), thêm US / FR
+                    sửa – xóa yêu cầu. routes.rb, User, 2 controller, show.html.erb, edit.html.erb mới; sửa 4 tệp
+                    test, thêm 2 tệp test (khoảng 118 → 128).
+
+---
+
+## Việc cần làm để tài liệu khớp với các quyết định trên
+
+| Tài liệu | Cập nhật theo | Trạng thái |
+|---|---|---|
+| docs/srs.md – FR01, FR09, FR10, US9, bảng truy vết | TD-03, TD-12, TD-13 | [ ] |
+| docs/srs.md – NFR05 ngoài phạm vi, UC01 luồng 5b, UC07 bỏ 2a, BR05 | TD-11, TD-12, TD-17 | [ ] |
+| docs/UseCase.drawio – actor UC05, chú thích ký hiệu | TD-05, TD-08 | [ ] |
+| docs/ERD.drawio – cột mới, status 3 giá trị, chú thích ký hiệu | TD-04, TD-05, TD-09 | [ ] |
+| docs/architecture.drawio – bỏ Devise/Pundit, thêm forms/queries, PostgreSQL 18 | TD-11, TD-16, TD-19 | [ ] |
+| docs/Wireframe.drawio – màn hình 1, 2, 3 | TD-12, TD-13, TD-14, TD-15 | [ ] |
+| .gitignore, .env.example, docs/api-docs.md, README | TD-07 | [x] |
+| docs/srs.md – NFR05 đưa lại vào phạm vi, tài khoản đăng nhập | TD-24 | [ ] |
+| docs/srs.md – US12, US13, FR13, FR14, BR12–BR14 | TD-25 | [ ] |
+| docs/api-docs.md – session, customers, issue_categories, stats, priorities, PATCH / DELETE warranty_requests | TD-24, TD-25, TD-26, TD-29 | [ ] |
+| docs/srs.md – User Story / Use Case Quản lý (UC01, UC06), sửa – xóa yêu cầu, FR12 | TD-29 | [ ] |
+| docs/UseCase.drawio – Quản lý nối UC01, UC06; thêm UC sửa, xóa yêu cầu | TD-29 | [ ] |
+| docs/architecture.drawio – API client (JS), middleware lỗi 503 | TD-26, TD-27 | [ ] |
