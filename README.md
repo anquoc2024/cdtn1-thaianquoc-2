@@ -101,9 +101,14 @@ bin/rails server                               # mở http://localhost:3000
 |---|---|---|
 | Tài khoản | 2 | `src/db/seeds.rb` |
 | Mức ưu tiên | 4 (Thấp 72h · Trung bình 48h · Cao 24h · Khẩn cấp 8h) | `src/db/seeds.rb` |
-| Nhóm sự cố | 6 | `src/db/seeds.rb` |
-| Khách hàng mẫu tự tạo | 8 (kèm 8 thiết bị, 8 yêu cầu – 2 yêu cầu quá hạn) | `src/db/seeds.rb` |
-| Khách hàng từ bộ dữ liệu của giảng viên | 300 dòng đọc → **279** khách (loại 20 dòng thiếu SĐT, gộp 1 SĐT trùng), mã `KH-100001`… | `data/mau/customers_mau.csv` |
+| Khách hàng (bộ 300 dòng) | 300 dòng đọc → **279** khách (loại 20 dòng thiếu SĐT, gộp 1 SĐT trùng), mã `KH-100001`… | `data/mau/customers_mau.csv` |
+| Nhóm sự cố | 6 (Màn hình, Pin, Sạc, Phần mềm, Nước vào, Khác) | `data/mau/issue_categories.csv` |
+| Khách hàng (bộ L2) | 31, mã `KH-(100000 + customer_id)` | `data/mau/customers.csv` |
+| Thiết bị | 38 dòng → **31** (loại 7 dòng thiếu ngày mua – BR02); hãng / model / loại lấy từ `products.csv` | `data/mau/devices.csv`, `products.csv` |
+| Yêu cầu bảo hành | **30**, trạng thái Mới tiếp nhận; giờ tạo = lúc seed − `hours_ago`, nên khoảng 18 yêu cầu đã quá hạn | `data/mau/tickets.csv` |
+
+Bộ L2 nạp bằng `L2DatasetImporter` (TD-28); `service_centers.csv` không nạp vì hệ thống phục vụ một trung tâm.
+Dòng bị loại kèm lý do ghi ở `src/tmp/import/l2_reject.csv`. Nạp lại riêng bộ L2: `bin/rails import:l2` (chạy lại không nhân đôi).
 
 **Tài khoản demo** (chỉ dùng cho môi trường phát triển / chấm bài):
 
@@ -148,7 +153,7 @@ Với server đang chạy ở một tab khác:
 |---|---|---|
 | 1 | `curl -s localhost:3000/api/health` | `{"status":"ok","db":"ok"}` |
 | 2 | Mở http://localhost:3000 | Chuyển tới trang **Đăng nhập** |
-| 3 | Đăng nhập `quoc@mekong.vn`, tra cứu `0905 123 456` | Thấy khách **Trần Thị Bình – KH-000245** |
+| 3 | Đăng nhập `quoc@mekong.vn`, tra cứu `0793 573 965` | Thấy khách **Lý Văn Như – KH-100561**, có 1 yêu cầu bảo hành |
 | 4 | Đăng nhập `phu@mekong.vn` | Mở **Danh sách yêu cầu**; mục Tra cứu và Tạo yêu cầu có ổ khóa |
 | 5 | Lấy token: `curl -s -X POST localhost:3000/api/session -H "Content-Type: application/json" -d '{"email_address":"phu@mekong.vn","password":"Mekong@2026"}'` | `200` kèm `"token": "..."` |
 | 6 | `curl -s localhost:3000/api/warranty_requests -H "Authorization: Bearer <token>"` | Danh sách JSON có `data` và `meta.tong_so` ≥ 8 |
@@ -263,7 +268,7 @@ cdtn1-thaianquoc-2/
 | Tệp | Nội dung |
 |---|---|
 | `docs/srs.md` | Đặc tả yêu cầu (SRS) |
-| `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-27) |
+| `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-28) |
 | `docs/api-docs.md` | Tài liệu API JSON |
 | `docs/api-ket-qua-thuc-te.md` | Request / response thật, sinh bởi `docs/scripts/goi-api.sh` |
 | `docs/postman/SmartCRM_API_BT2.postman_collection.json` | Postman collection 40 request có test tự kiểm tra |
