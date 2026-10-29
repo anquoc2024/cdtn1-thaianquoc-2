@@ -34,5 +34,5 @@
 .table__empty .state { margin: 6px auto; max-width: 560px; }
 
 /* Mốc so sánh dưới mỗi con số thống kê */
-.stat { height: auto; min-height: 84px; padding-bottom: 8px; }
+.stats .stat { height: auto; min-height: 84px; padding-bottom: 10px; }   /* .stats .stat: ưu tiên hơn .stat trong warranty.css (nạp sau) */
 .stat__ref { font-size: 12px; color: var(--text-muted); }
