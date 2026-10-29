@@ -105,18 +105,6 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
 
 ### C. Quyết định phát sinh khi hiện thực mã nguồn
 
-### TD-11  Bỏ chức năng đăng nhập và phân quyền theo vai trò khỏi phạm vi
-- Phản hồi của GV : (quyết định khi hiện thực) Thiết kế ban đầu có NFR05 – kiểm soát quyền truy cập
-                    theo vai trò, dùng Devise (xác thực) và Pundit (phân quyền).
-- Quyết định      : SỬA – chuyển NFR05 sang "Ngoài phạm vi"
-- Lý do           : Đã hiện thực thử Devise + Pundit, nhưng để tập trung thời gian vào quy tắc nghiệp vụ
-                    của luồng L2 (là nội dung được đánh giá) trước hạn BT2, chức năng này được gỡ bỏ.
-                    Người tạo yêu cầu mặc định là nhân viên tiếp nhận đầu tiên (DefaultCurrentUser).
-                    HẠN CHẾ ĐÃ BIẾT: ai mở được trình duyệt đều dùng được cả 3 màn hình.
-- Ảnh hưởng       : SRS NFR05 (ngoài phạm vi), UC07 (bỏ luồng ngoại lệ 2a); architecture.drawio
-                    (bỏ khối Devise, Pundit); ERD (users không có cột mật khẩu);
-                    src/app/controllers/concerns/default_current_user.rb.
-
 ### TD-12  Tra cứu khách hàng bằng số điện thoại, mã khách hàng hoặc tên
 - Phản hồi của GV : (yêu cầu bổ sung khi hiện thực) FR01 ban đầu chỉ cho tra cứu bằng số điện thoại.
 - Quyết định      : SỬA – mở rộng FR01
