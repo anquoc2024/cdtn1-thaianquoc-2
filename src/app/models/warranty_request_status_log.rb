@@ -6,7 +6,7 @@ class WarrantyRequestStatusLog < ApplicationRecord
   validates :to_status, presence: true, inclusion: { in: WarrantyRequest.statuses.values }
   validates :note, length: { maximum: 500 }
 
-  # from_status / to_status lưu giá trị trong DB ("new", "in_progress"…) → nhãn tiếng Việt
+  # from_status / to_status lưu giá trị trong DB ("new", "in_progress"…) 
   def self.label_for(db_value)
     return "—" if db_value.blank?
 

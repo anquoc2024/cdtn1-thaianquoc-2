@@ -2,7 +2,8 @@ require "test_helper"
 
 # TD-24 – Phân quyền theo vai trò (NFR05, theo User Story)
 #   Nhân viên tiếp nhận: tra cứu, tạo yêu cầu, xem phiếu, đổi trạng thái, xem danh sách
-#   Quản lý trung tâm:   chỉ xem danh sách, thống kê và phiếu tiếp nhận
+#   Quản lý trung tâm:   tra cứu, tạo yêu cầu, xem danh sách / thống kê / phiếu (TD-29);
+#                        không đổi trạng thái, không sửa / xóa yêu cầu
 class ReceptionistAuthorizationTest < ActionDispatch::IntegrationTest
   self.auto_sign_in_as = :receptionist
 
@@ -45,25 +46,35 @@ class ManagerAuthorizationTest < ActionDispatch::IntegrationTest
     get warranty_request_path(@warranty_request)
     assert_response :ok
     assert_select ".status-panel button", 0
+    assert_select "a", text: "Sửa yêu cầu", count: 0
+    assert_select "button", text: "Xóa yêu cầu", count: 0
   end
 
-  test "sidebar đủ 3 mục; Tra cứu và Tạo yêu cầu bị khóa với Quản lý" do
+  test "sidebar đủ 3 mục, không mục nào bị khóa với Quản lý (TD-29)" do
     get manager_warranty_requests_path
 
     assert_select ".sidebar .nav__item", 3
-    assert_select ".sidebar .nav__item--locked", 2
-    assert_select ".sidebar .nav__item--locked span", "Tra cứu khách hàng"
-    assert_select ".sidebar .nav__item--locked span", "Tạo yêu cầu bảo hành"
+    assert_select ".sidebar .nav__item--locked", 0
   end
 
-  test "Quản lý vào Tra cứu hoặc Tạo yêu cầu bị chặn và báo không có quyền" do
+  test "Quản lý tra cứu khách hàng và mở được form tạo yêu cầu (TD-29)" do
     get search_customers_path
-    assert_redirected_to manager_warranty_requests_path
-    follow_redirect!
-    assert_select ".flash--alert", "Vai trò Quản lý trung tâm không có quyền dùng chức năng này."
+    assert_response :ok
 
-    get new_warranty_request_path
+    get new_warranty_request_path(customer_id: @warranty_request.device.customer_id)
+    assert_response :ok
+  end
+
+  test "Quản lý không sửa, không xóa được yêu cầu" do
+    get edit_warranty_request_path(@warranty_request)
     assert_redirected_to manager_warranty_requests_path
+
+    patch warranty_request_path(@warranty_request), params: { warranty_request: { issue_description: "Sửa trộm" } }
+    assert_equal "Lỗi", @warranty_request.reload.issue_description
+
+    assert_no_difference "WarrantyRequest.count" do
+      delete warranty_request_path(@warranty_request)
+    end
   end
 
   test "Quản lý không đổi được trạng thái yêu cầu" do

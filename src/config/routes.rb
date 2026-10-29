@@ -8,8 +8,8 @@ Rails.application.routes.draw do
   # Màn hình 1 – Tra cứu khách hàng (UC01, UC08)
   get "customers/search", to: "customers#search", as: :search_customers
 
-  # Màn hình 2 – Tạo yêu cầu bảo hành (UC02–UC06) + phiếu tiếp nhận
-  resources :warranty_requests, only: [:new, :create, :show] do
+  # Màn hình 2 – Tạo yêu cầu bảo hành (UC02–UC06) + phiếu tiếp nhận; sửa / xóa yêu cầu (TD-29)
+  resources :warranty_requests, only: %i[new create show edit update destroy] do
     # Cập nhật trạng thái / hủy (UC09, UC10): PATCH /warranty_requests/:id/update_status
     patch :update_status, on: :member
   end
@@ -27,7 +27,7 @@ Rails.application.routes.draw do
     resource  :stats,      only: :show    # GET /api/stats – thẻ thống kê có mốc so sánh (TD-26)
     resources :priorities, only: :index   # GET /api/priorities – danh mục mức ưu tiên (TD-26)
     get "health", to: "health#show"
-    resources :warranty_requests, only: [:index, :show, :create] do
+    resources :warranty_requests, only: %i[index show create update destroy] do   # PATCH / DELETE: TD-29
       patch :status, on: :member, action: :update_status   # PATCH /api/warranty_requests/:id/status
     end
   end

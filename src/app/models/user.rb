@@ -4,17 +4,20 @@ class User < ApplicationRecord
 
   ROLE_LABELS = { "receptionist" => "Nhân viên tiếp nhận", "manager" => "Quản lý trung tâm" }.freeze
 
-  # Bảng phân quyền (TD-24, theo User Story):
-  #   Nhân viên tiếp nhận – làm toàn bộ nghiệp vụ tiếp nhận và xem được danh sách
-  #   Quản lý trung tâm   – CHỈ XEM: danh sách, thống kê, phiếu tiếp nhận; không tạo, không đổi trạng thái
+  # Bảng phân quyền (TD-24, mở rộng ở TD-29):
+  #   Nhân viên tiếp nhận – làm toàn bộ nghiệp vụ: tra cứu, tạo, đổi trạng thái, SỬA và XÓA yêu cầu, CRUD danh mục
+  #   Quản lý trung tâm   – tra cứu khách hàng, tạo yêu cầu, xem danh sách / thống kê / phiếu;
+  #                         KHÔNG đổi trạng thái, không sửa / xóa yêu cầu, không sửa danh mục
   PERMISSIONS = {
-    lookup_customers:  %w[receptionist],           # UC01, UC08
-    create_requests:   %w[receptionist],           # UC02–UC06
+    lookup_customers:  %w[receptionist manager],   # UC01, UC08 (Quản lý được thêm ở TD-29)
+    create_requests:   %w[receptionist manager],   # UC02–UC06 (Quản lý được thêm ở TD-29)
     change_status:     %w[receptionist],           # UC09, UC10
     view_requests:     %w[receptionist manager],   # Phiếu tiếp nhận
-    view_request_list: %w[receptionist manager],    # UC07
+    view_request_list: %w[receptionist manager],   # UC07
     manage_customers:  %w[receptionist],           # CRUD Khách hàng (TD-25)
-    manage_catalog:    %w[receptionist]            # CRUD Nhóm sự cố (TD-25)
+    manage_catalog:    %w[receptionist],           # CRUD Nhóm sự cố (TD-25)
+    edit_requests:     %w[receptionist],           # Sửa yêu cầu bảo hành (TD-29)
+    delete_requests:   %w[receptionist]            # Xóa yêu cầu bảo hành (TD-29)
   }.freeze
 
   # validations: false – tài khoản cũ / tạo trong test chưa có mật khẩu thì vẫn lưu được,

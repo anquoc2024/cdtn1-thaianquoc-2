@@ -146,19 +146,55 @@ class ApiWarrantyRequestsTest < ActionDispatch::IntegrationTest
     assert_response :ok
   end
 
-  test "Quản lý chỉ xem: tạo yêu cầu và đổi trạng thái đều 403 KHONG_CO_QUYEN" do
+  test "Quản lý tạo được yêu cầu (TD-29); đổi trạng thái, sửa, xóa đều 403 KHONG_CO_QUYEN" do
     get api_warranty_request_path(@existing), headers: auth(@manager)
     assert_response :ok
 
-    assert_no_difference "WarrantyRequest.count" do
+    assert_difference "WarrantyRequest.count", 1 do
       post api_warranty_requests_path, params: valid_body, headers: auth(@manager), as: :json
     end
-    assert_response :forbidden
-    assert_equal "KHONG_CO_QUYEN", json["error"]
+    assert_response :created
+    assert_equal @manager, WarrantyRequest.find(json["data"]["id"]).created_by
 
     patch status_api_warranty_request_path(@existing), params: { status: "in_progress" }, headers: auth(@manager), as: :json
     assert_response :forbidden
+    assert_equal "KHONG_CO_QUYEN", json["error"]
+
+    patch api_warranty_request_path(@existing), params: { issue_description: "Sửa" }, headers: auth(@manager), as: :json
+    assert_response :forbidden
+
+    delete api_warranty_request_path(@existing), headers: auth(@manager)
+    assert_response :forbidden
     assert_equal "received", @existing.reload.status
+  end
+
+  test "PATCH /api/warranty_requests/:id sửa từng trường; đổi ưu tiên thì tính lại hạn (TD-29)" do
+    faster = Priority.create!(name: "Khẩn cấp", sla_hours: 8)
+
+    patch api_warranty_request_path(@existing), params: { issue_description: "Màn hình sọc", priority_id: faster.id },
+                                                headers: auth, as: :json
+    assert_response :ok
+    assert_equal "Màn hình sọc", @existing.reload.issue_description
+    assert_equal @existing.created_at + 8.hours, @existing.due_at
+    assert_equal "Dell", @existing.device.brand                          # trường không gửi giữ nguyên
+
+    patch api_warranty_request_path(@existing), params: { issue_description: "" }, headers: auth, as: :json
+    assert_response :bad_request
+    assert_equal "DU_LIEU_KHONG_HOP_LE", json["error"]
+    assert_equal "issue_description", json["chi_tiet"]["cac_truong"].first["truong"]
+  end
+
+  test "DELETE /api/warranty_requests/:id xóa yêu cầu, giữ thiết bị; xóa lại trả 404 (TD-29)" do
+    device = @existing.device
+
+    assert_difference "WarrantyRequest.count", -1 do
+      delete api_warranty_request_path(@existing), headers: auth
+    end
+    assert_response :no_content
+    assert Device.exists?(device.id)
+
+    delete api_warranty_request_path(@existing), headers: auth
+    assert_response :not_found
   end
 
   test "yêu cầu tạo qua API ghi người tạo là chủ token" do

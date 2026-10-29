@@ -16,7 +16,7 @@ Hệ thống web giúp **nhân viên tiếp nhận** của trung tâm bảo hàn
 ghi nhận thiết bị và mô tả lỗi, phân loại nhóm sự cố, chọn mức ưu tiên rồi tạo yêu cầu bảo hành; hệ thống tự sinh mã
 `BH-YYYY-NNNNNN` và tự tính hạn cam kết theo SLA. Nhân viên tiếp nhận cập nhật trạng thái yêu cầu
 (Mới tiếp nhận → Đang xử lý → Hoàn tất, hoặc Hủy kèm lý do) và mọi lần đổi đều được ghi lịch sử.
-**Quản lý trung tâm** chỉ xem: danh sách, thống kê có mốc so sánh và phiếu tiếp nhận, phát hiện yêu cầu quá hạn.
+Nhân viên tiếp nhận còn **sửa và xóa** yêu cầu (TD-29). **Quản lý trung tâm** tra cứu khách hàng, tạo yêu cầu và xem danh sách, thống kê có mốc so sánh, phiếu tiếp nhận để phát hiện yêu cầu quá hạn; không đổi trạng thái, không sửa / xóa.
 Ba màn hình lấy dữ liệu qua **API JSON** (`/api/...`) bằng một lớp client riêng; cùng API đó dùng được bằng curl / Postman với token.
 
 | Màn hình | Chức năng | Use Case |
@@ -114,8 +114,8 @@ Dòng bị loại kèm lý do ghi ở `src/tmp/import/l2_reject.csv`. Nạp lạ
 
 | Vai trò | Email | Mật khẩu | Được làm gì |
 |---|---|---|---|
-| Nhân viên tiếp nhận | `quoc@mekong.vn` | `Mekong@2026` | Tra cứu, tạo yêu cầu, đổi trạng thái, xem danh sách, CRUD khách hàng và nhóm sự cố |
-| Quản lý trung tâm | `phu@mekong.vn` | `Mekong@2026` | Chỉ xem: danh sách, thống kê, phiếu tiếp nhận |
+| Nhân viên tiếp nhận | `quoc@mekong.vn` | `Mekong@2026` | Tra cứu, tạo yêu cầu, đổi trạng thái, **sửa / xóa yêu cầu**, xem danh sách, CRUD khách hàng và nhóm sự cố |
+| Quản lý trung tâm | `phu@mekong.vn` | `Mekong@2026` | Tra cứu khách hàng, tạo yêu cầu, xem danh sách / thống kê / phiếu tiếp nhận |
 
 **Nạp toàn bộ dữ liệu khách hàng của giảng viên** (tệp lớn, không commit): chép tệp vào `data/customer.csv` rồi
 ```bash
@@ -154,7 +154,7 @@ Với server đang chạy ở một tab khác:
 | 1 | `curl -s localhost:3000/api/health` | `{"status":"ok","db":"ok"}` |
 | 2 | Mở http://localhost:3000 | Chuyển tới trang **Đăng nhập** |
 | 3 | Đăng nhập `quoc@mekong.vn`, tra cứu `0793 573 965` | Thấy khách **Lý Văn Như – KH-100561**, có 1 yêu cầu bảo hành |
-| 4 | Đăng nhập `phu@mekong.vn` | Mở **Danh sách yêu cầu**; mục Tra cứu và Tạo yêu cầu có ổ khóa |
+| 4 | Đăng nhập `phu@mekong.vn` | Mở **Danh sách yêu cầu**; dùng được Tra cứu và Tạo yêu cầu; trên phiếu tiếp nhận không có nút đổi trạng thái, Sửa, Xóa |
 | 5 | Lấy token: `curl -s -X POST localhost:3000/api/session -H "Content-Type: application/json" -d '{"email_address":"phu@mekong.vn","password":"Mekong@2026"}'` | `200` kèm `"token": "..."` |
 | 6 | `curl -s localhost:3000/api/warranty_requests -H "Authorization: Bearer <token>"` | Danh sách JSON có `data` và `meta.tong_so` ≥ 8 |
 | 7 | `curl -s -i localhost:3000/api/warranty_requests` (không token) | `401` với `"error":"CHUA_XAC_THUC"` |
@@ -170,7 +170,7 @@ Xác thực bằng header `Authorization: Bearer <token>` (lấy ở `POST /api/
 |---|---|---|---|
 | GET | `/api/health` | Dịch vụ và CSDL còn hoạt động | Không cần token |
 | POST / DELETE | `/api/session` | Đăng nhập lấy token / đăng xuất thu hồi token | — |
-| GET | `/api/customers?q=&page=` | Danh sách / tra cứu khách hàng | Nhân viên tiếp nhận |
+| GET | `/api/customers?q=&page=` | Danh sách / tra cứu khách hàng | Cả hai vai trò |
 | GET · POST · PATCH · DELETE | `/api/customers[/:id]` | CRUD khách hàng (không xóa khách đã có thiết bị – BR13) | Nhân viên tiếp nhận |
 | GET | `/api/issue_categories[/:id]` | Danh sách / chi tiết nhóm sự cố | Cả hai vai trò |
 | POST · PATCH · DELETE | `/api/issue_categories[/:id]` | CRUD nhóm sự cố (không xóa nhóm đang dùng – BR14) | Nhân viên tiếp nhận |
@@ -178,8 +178,10 @@ Xác thực bằng header `Authorization: Bearer <token>` (lấy ở `POST /api/
 | GET | `/api/stats` | Thống kê có mốc so sánh | Cả hai vai trò |
 | GET | `/api/warranty_requests` | Danh sách, lọc, sắp xếp, phân trang | Cả hai vai trò |
 | GET | `/api/warranty_requests/:id` | Chi tiết + lịch sử trạng thái | Cả hai vai trò |
-| POST | `/api/warranty_requests` | Tạo yêu cầu bảo hành | Nhân viên tiếp nhận |
+| POST | `/api/warranty_requests` | Tạo yêu cầu bảo hành | Cả hai vai trò |
 | PATCH | `/api/warranty_requests/:id/status` | Đổi trạng thái / hủy kèm lý do | Nhân viên tiếp nhận |
+| PATCH | `/api/warranty_requests/:id` | Sửa thiết bị, mô tả lỗi, nhóm sự cố, mức ưu tiên (gửi trường nào sửa trường đó; đổi ưu tiên thì tính lại hạn) | Nhân viên tiếp nhận |
+| DELETE | `/api/warranty_requests/:id` | Xóa yêu cầu kèm lịch sử (giữ thiết bị, khách hàng) | Nhân viên tiếp nhận |
 
 ### Kiểm tra toàn bộ API
 
@@ -210,7 +212,7 @@ API bằng curl / Postman, kết quả kiểm thử, lỗi 503 khi tắt CSDL, v
 
 ## 6. Trạng thái hiện tại (Bài tập 2)
 
-- [x] Đăng nhập email + mật khẩu (bcrypt), phân quyền theo User Story: Quản lý chỉ xem (TD-24)
+- [x] Đăng nhập email + mật khẩu (bcrypt), phân quyền 2 vai trò (TD-24); Quản lý tra cứu và tạo yêu cầu, Nhân viên tiếp nhận sửa / xóa yêu cầu (TD-29)
 - [x] Migration dựng CSDL từ trạng thái trống (8 bảng) + dữ liệu mẫu chạy lại không nhân đôi
 - [x] Nạp khách hàng từ bộ dữ liệu của giảng viên: làm sạch SĐT / họ tên, gộp trùng, ghi dòng bị loại (TD-23)
 - [x] CRUD đủ 4 thao tác cho **Khách hàng** và **Nhóm sự cố**; yêu cầu bảo hành: tạo, xem, đổi trạng thái, hủy (TD-25)
@@ -268,7 +270,7 @@ cdtn1-thaianquoc-2/
 | Tệp | Nội dung |
 |---|---|
 | `docs/srs.md` | Đặc tả yêu cầu (SRS) |
-| `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-28) |
+| `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-29) |
 | `docs/api-docs.md` | Tài liệu API JSON |
 | `docs/api-ket-qua-thuc-te.md` | Request / response thật, sinh bởi `docs/scripts/goi-api.sh` |
 | `docs/postman/SmartCRM_API_BT2.postman_collection.json` | Postman collection 40 request có test tự kiểm tra |

@@ -34,6 +34,14 @@
       <button class="btn btn--print" type="button" onclick="window.print()">In phiếu tiếp nhận</button>
       <%= link_to "Tạo yêu cầu mới", search_customers_path, class: "btn btn--success" %>
       <%= link_to "Về danh sách", manager_warranty_requests_path, class: "btn" %>
+      <% if can?(:edit_requests) %>
+        <%= link_to "Sửa yêu cầu", edit_warranty_request_path(request_record), class: "btn btn--primary" %>
+      <% end %>
+      <% if can?(:delete_requests) %>
+        <%= button_to "Xóa yêu cầu", warranty_request_path(request_record), method: :delete,
+                      class: "btn btn--danger", form_class: "receipt__delete",
+                      form: { data: { turbo_confirm: "Xóa hẳn yêu cầu #{request_record.code} cùng lịch sử trạng thái? Không thể hoàn tác." } } %>
+      <% end %>
     </div>
   </div>
 
@@ -80,7 +88,11 @@
             <li class="timeline__item">
               <div class="timeline__time"><%= format_datetime(log.created_at) %> · <%= log.changed_by.full_name %></div>
               <div class="timeline__change">
-                <% if log.from_status %><%= log.from_label %> → <% end %><b><%= log.to_label %></b>
+                <% if log.from_status.present? && log.from_status == log.to_status %>
+                  <b>Cập nhật thông tin</b>
+                <% else %>
+                  <% if log.from_status %><%= log.from_label %> → <% end %><b><%= log.to_label %></b>
+                <% end %>
               </div>
               <% if log.note.present? %><div class="timeline__note"><%= log.note %></div><% end %>
             </li>

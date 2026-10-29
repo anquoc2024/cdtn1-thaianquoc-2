@@ -4,9 +4,11 @@
 #   GET   /api/warranty_requests/:id         chi tiết + lịch sử trạng thái
 #   POST  /api/warranty_requests             tạo yêu cầu – UC06
 #   PATCH /api/warranty_requests/:id/status  đổi trạng thái / hủy – S2
+#   PATCH /api/warranty_requests/:id         sửa thông tin (gửi trường nào sửa trường đó) – TD-29
+#   DELETE /api/warranty_requests/:id        xóa yêu cầu kèm lịch sử – TD-29
 #
 # Controller chỉ dịch HTTP ↔ service; quy tắc nghiệp vụ nằm trong các service dùng chung với giao diện.
-# TD-24: mọi endpoint cần token (xem BaseController). Quản lý chỉ xem; tạo và đổi trạng thái là của Nhân viên tiếp nhận.
+# TD-24, TD-29: mọi endpoint cần token. Quản lý xem và tạo được; đổi trạng thái, sửa, xóa là của Nhân viên tiếp nhận.
 module Api
   class WarrantyRequestsController < BaseController
     # Mã lỗi nghiệp vụ → mã HTTP
@@ -21,6 +23,8 @@ module Api
     before_action -> { require_permission!(:view_requests) },     only: :show
     before_action -> { require_permission!(:create_requests) },   only: :create
     before_action -> { require_permission!(:change_status) },     only: :update_status
+    before_action -> { require_permission!(:edit_requests) },     only: :update
+    before_action -> { require_permission!(:delete_requests) },   only: :destroy
 
     def index
       search = WarrantyRequestSearch.new(
@@ -72,6 +76,28 @@ module Api
         http_status, code = STATUS_ERRORS.fetch(result.error_code)
         render_error(http_status, code, result.error)
       end
+    end
+
+    # TD-29 – PATCH /api/warranty_requests/:id
+    def update
+      item = WarrantyRequest.includes(device: :customer).find(params[:id])
+      form = WarrantyRequestEditForm.from(item).tap { |f| f.assign_attributes(params.permit(*WarrantyRequestEditForm.attribute_names)) }
+      result = WarrantyRequestUpdater.call(warranty_request: item, form: form, changed_by: current_user)
+
+      if result.success?
+        render json: { data: WarrantyRequestSerializer.detail(item.reload) }
+      else
+        render_error(:bad_request, "DU_LIEU_KHONG_HOP_LE", result.message, { cac_truong: result.errors })
+      end
+    end
+
+    # TD-29 – DELETE /api/warranty_requests/:id
+    def destroy
+      item = WarrantyRequest.find(params[:id])
+      result = WarrantyRequestDestroyer.call(warranty_request: item, deleted_by: current_user)
+      return head :no_content if result.success?
+
+      render_error(:conflict, "KHONG_XOA_DUOC", result.message)
     end
 
     private

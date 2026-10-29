@@ -31,15 +31,16 @@ class ApiSessionsTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "token lấy từ đăng nhập gọi được API theo đúng quyền (Quản lý chỉ xem)" do
+  test "token lấy từ đăng nhập gọi được API theo đúng quyền (Quản lý tra cứu, tạo, xem – TD-29)" do
     post api_session_path, params: { email_address: "phu@mekong.vn", password: PASSWORD }, as: :json
-    assert_equal %w[view_requests view_request_list], json["data"]["user"]["permissions"]
+    assert_equal %w[lookup_customers create_requests view_requests view_request_list], json["data"]["user"]["permissions"]
     token = json["data"]["token"]
 
     get api_warranty_requests_path, headers: { "Authorization" => "Bearer #{token}" }
     assert_response :ok
 
-    post api_warranty_requests_path, params: {}, headers: { "Authorization" => "Bearer #{token}" }, as: :json
+    patch status_api_warranty_request_path(id: 1), params: { status: "in_progress" },
+                                                  headers: { "Authorization" => "Bearer #{token}" }, as: :json
     assert_response :forbidden
   end
 

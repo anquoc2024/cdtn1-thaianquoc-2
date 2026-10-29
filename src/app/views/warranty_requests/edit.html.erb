@@ -1,0 +1,101 @@
+<% content_for :title, "Sửa #{@warranty_request.code} – Trung tâm bảo hành" %>
+<% customer = @warranty_request.device.customer %>
+
+<div class="breadcrumb">Trang chủ › Tiếp nhận bảo hành › Phiếu tiếp nhận › Sửa yêu cầu</div>
+<h1 class="page-title">Sửa yêu cầu bảo hành <%= @warranty_request.code %></h1>
+
+<div class="customer-bar">
+  👤 Khách hàng:&nbsp;<b><%= customer.name %></b>&nbsp;· <%= customer.code %> · <%= format_phone(customer.phone) %>
+  &nbsp;· Serial: <b><%= @warranty_request.device.serial_number %></b>
+  &nbsp;· Trạng thái: <span class="badge <%= status_badge_class(@warranty_request) %>"><%= @warranty_request.status_label %></span>
+</div>
+
+<%# TD-29 – sửa thông tin yêu cầu; khách hàng và serial là danh tính thiết bị nên không sửa ở đây %>
+<%= form_with model: @form, url: warranty_request_path(@warranty_request), method: :patch, class: "card request-form" do |f| %>
+  <% if @form.errors.any? %>
+    <div class="form-errors" role="alert">
+      <b>Chưa lưu được thay đổi.</b> Vui lòng kiểm tra lại <%= @form.errors.count %> thông tin được đánh dấu đỏ.
+      <% if @form.errors[:base].any? %>
+        <ul><% @form.errors[:base].each do |message| %><li><%= message %></li><% end %></ul>
+      <% end %>
+    </div>
+  <% end %>
+
+  <h2 class="card__title"><b>1. Thông tin thiết bị</b></h2>
+  <div class="form-grid form-grid--device-1">
+    <div class="field">
+      <%= f.label :device_type, class: "field__label" do %>Loại thiết bị <span class="req">*</span><% end %>
+      <div class="select-wrap">
+        <%= f.select :device_type, (WarrantyRequestForm::DEVICE_TYPES | [@form.device_type]).compact, {},
+                     class: field_classes(f, :device_type, "select"), required: true %>
+      </div>
+      <%= field_error(f, :device_type) %>
+    </div>
+    <div class="field">
+      <%= f.label :brand, class: "field__label" do %>Hãng <span class="req">*</span><% end %>
+      <div class="select-wrap">
+        <%= f.select :brand, (WarrantyRequestForm::BRANDS | [@form.brand]).compact, {},
+                     class: field_classes(f, :brand, "select"), required: true %>
+      </div>
+      <%= field_error(f, :brand) %>
+    </div>
+    <div class="field">
+      <%= f.label :model, class: "field__label" do %>Model <span class="req">*</span><% end %>
+      <%= f.text_field :model, class: field_classes(f, :model), maxlength: 100, required: true %>
+      <%= field_error(f, :model) %>
+    </div>
+  </div>
+  <div class="form-grid form-grid--device-2">
+    <div class="field">
+      <%= f.label :purchase_date, class: "field__label" do %>Ngày mua <span class="req">*</span><% end %>
+      <%= f.date_field :purchase_date, class: field_classes(f, :purchase_date), max: Date.current, required: true %>
+      <%= field_error(f, :purchase_date) %>
+    </div>
+    <div class="field">
+      <%= f.label :warranty_card_number, "Số phiếu bảo hành", class: "field__label" %>
+      <%= f.text_field :warranty_card_number, class: field_classes(f, :warranty_card_number), maxlength: 50 %>
+      <%= field_error(f, :warranty_card_number) %>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <h2 class="card__title"><b>2. Mô tả lỗi</b></h2>
+  <div class="field">
+    <%= f.label :issue_description, class: "field__label" do %>Mô tả chi tiết tình trạng lỗi <span class="req">*</span><% end %>
+    <%= f.text_area :issue_description, class: field_classes(f, :issue_description, "textarea"), maxlength: 1000, required: true %>
+    <%= field_error(f, :issue_description) %>
+  </div>
+
+  <hr class="divider">
+
+  <h2 class="card__title"><b>3. Phân loại</b></h2>
+  <div class="classify">
+    <div class="field">
+      <%= f.label :issue_category_id, class: "field__label" do %>Nhóm sự cố <span class="req">*</span><% end %>
+      <div class="select-wrap">
+        <%= f.collection_select :issue_category_id, @issue_categories, :id, :name, {},
+                                class: field_classes(f, :issue_category_id, "select"), required: true %>
+      </div>
+      <%= field_error(f, :issue_category_id) %>
+    </div>
+    <fieldset class="priority">
+      <legend>Mức độ ưu tiên <span class="req">*</span></legend>
+      <% @priorities.each do |priority| %>
+        <label class="radio">
+          <%= f.radio_button :priority_id, priority.id, required: true %>
+          <span><%= priority.label %></span>
+        </label>
+      <% end %>
+      <%= field_error(f, :priority_id) %>
+    </fieldset>
+  </div>
+
+  <p class="required-note">Đổi mức ưu tiên thì hạn cam kết được tính lại từ thời điểm tiếp nhận (BR06). Mỗi lần lưu ghi một dòng vào lịch sử.</p>
+
+  <div class="form-actions">
+    <%= link_to "Hủy", warranty_request_path(@warranty_request), class: "btn btn--cancel" %>
+    <%= f.button "✓ Lưu thay đổi", type: "submit", name: nil, class: "btn btn--primary",
+                 data: { turbo_submits_with: "Đang lưu..." } %>
+  </div>
+<% end %>
