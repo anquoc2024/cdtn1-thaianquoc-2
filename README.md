@@ -184,9 +184,9 @@ Postman: import tệp environment theo hướng dẫn trong `docs/api-docs.md`; 
 - [x] Tách lớp: controller (HTTP) → service (nghiệp vụ, không có dấu vết HTTP) → model (truy cập dữ liệu)
 - [x] 3 màn hình lấy dữ liệu qua API bằng `api/client.js`, đủ 3 trạng thái đang tải · rỗng · lỗi có nút Thử lại; thống kê có mốc so sánh (TD-26)
 - [x] Bộ kiểm thử đủ 3 loại (luồng đúng · giá trị biên · dữ liệu sai), chạy bằng `bin/rails test`
-- [ ] Xử lý lỗi xuyên lớp theo Buổi 11: mã tra cứu cho lỗi 500, trả 503 khi mất CSDL, rà log không ghi dữ liệu nhạy cảm
+- [x]Xử lý lỗi xuyên lớp theo Buổi 11: mã tra cứu cho lỗi 500, trả 503 khi mất CSDL, rà log không ghi dữ liệu nhạy cảm
 - [ ] Đóng gói Docker + docker-compose (chuẩn bị cho Bài tập 3)
-- [ ] Cập nhật SRS, sơ đồ kiến trúc thực tế, Bug Log; tạo tag `v0.2`
+- [x] Cập nhật SRS, sơ đồ kiến trúc thực tế, Bug Log; tạo tag `v0.2`
 
 **Hạn chế đã biết:** API token không tự hết hạn (chỉ đổi khi đăng xuất qua `DELETE /api/session`);
 giao diện không có màn hình riêng cho CRUD khách hàng / nhóm sự cố (thao tác qua API).
