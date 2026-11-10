@@ -9,6 +9,9 @@ Thái An Quốc – 2374802012635 · Mỗi bug một commit riêng `fix(...)`; l
 | BUG-03 | Major | Thiếu route `/api` và `Api::WarrantyRequestsController`, API không dùng được | [ce377e4](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/ce377e41f1a843949bf8678149b2467993efef7d) |
 | BUG-04 | Minor | Thẻ thống kê bị cắt dòng mốc so sánh | [515d960](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/515d960d13341264e7b83e68bab02a4443470a47) |
 | BUG-05 | Minor | 3 test sửa / xóa yêu cầu hỏng do biến `@request` trùng biến của Rails | [a4d69bc](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/a4d69bcab84f3a97b37a5a1bca29485653385cd8) |
+| BUG-06 | Major | 11 gem (Rails, rack, nokogiri…) có 44 lỗ hổng đã công bố, gồm 1 Critical và 5 High | [e7c4923](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/e7c49235b1f9d6a09734586af0c617862c3495b7) |
+| BUG-07 | Minor | Gửi JSON hỏng bị trả 500 `LOI_HE_THONG` thay vì 400 | [1ac9df3](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/1ac9df33586f8236c8a7d43f2564de7d819fc28f) |
+| BUG-08 | Minor | Mật khẩu demo bị in ra log container khi nạp dữ liệu mẫu | [50d456d](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/50d456d655e82e1e110d8b67bc70ff736a95813a) |
 
 ## BUG-01 — Quản lý trung tâm dùng được chức năng của Nhân viên tiếp nhận
 
@@ -77,3 +80,63 @@ Thái An Quốc – 2374802012635 · Mỗi bug một commit riêng `fix(...)`; l
 6. **Cách sửa:** đổi `@request` → `@warranty_request` trong `src/test/integration/warranty_request_edit_test.rb`.
 7. **Commit và xác nhận:** https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/a4d69bcab84f3a97b37a5a1bca29485653385cd8 · chạy lại tệp test → 4/4 PASS; toàn bộ `bin/rails test` → 0 failures,
    0 errors (ảnh `docs/screenshots/BUG-05-fixed.png`).
+
+## BUG-06 — Thư viện có lỗ hổng bảo mật đã công bố
+
+1. **Mã và mức độ:** BUG-06 · MAJOR — 44 lỗ hổng đã công bố trong 11 gem (1 Critical, 5 High), trong đó có loại
+   ứng dụng đang dùng tới: rack multipart DoS (High), Strong Parameters bypass (High), giả IP qua RemoteIp (High).
+   Hệ thống vẫn chạy đúng chức năng và chưa thấy bị khai thác; lỗ hổng Critical nằm ở Active Storage phân tích
+   ảnh – tính năng luồng L2 không dùng – nên xếp Major, không phải Critical.
+2. **Phát hiện bởi:** checklist bảo mật mục 7 (OWASP A03) — `bin/bundler-audit check --update` trong
+   `scripts/kiem-bao-mat.sh` báo `Vulnerabilities found!` (ảnh `docs/screenshots/BUG-06-truoc.png`).
+3. **Triệu chứng:** bundler-audit liệt kê, ví dụ: rack 3.2.7 `GHSA-5v64-555j-wjxm` (High), rails-html-sanitizer 1.7.1
+   `GHSA-cpgf-5mjf-73p7`, nokogiri 1.19.4 `GHSA-v995-44v6-5fqm`. Đối chiếu đủ với ruby-advisory-db (bản 09/11/2026):
+   actionpack 7 · activestorage 7 · addressable 7 · loofah 6 · rack 4 · actionview 4 · nokogiri 3 · activesupport 2 ·
+   rails-html-sanitizer 2 · actionmailbox 1 · crass 1 = 44 mã.
+4. **Cách tái lập:** checkout commit trước `e7c4923` → `cd src && bin/bundler-audit check --update` → `Vulnerabilities found!`;
+   luôn xảy ra (phụ thuộc phiên bản trong `Gemfile.lock`, không phụ thuộc dữ liệu).
+5. **Nguyên nhân:** `Gemfile.lock` vẫn khóa các phiên bản lúc tạo dự án; các bản vá bảo mật phát hành sau đó
+   (Rails 8.1.4.1, rack 3.2.8…) chưa được cập nhật vì trước đó chưa có bước kiểm lỗ hổng phụ thuộc.
+6. **Cách sửa:** `bundle update --conservative` đúng các gem bị báo — chỉ đổi `src/Gemfile.lock`:
+   Rails 8.1.4 → 8.1.4.1 (cả nhóm actionpack, actionview, activestorage, activesupport, actionmailbox…),
+   rack 3.2.7 → 3.2.8, nokogiri 1.19.4 → 1.19.7, rails-html-sanitizer 1.7.1 → 1.7.2, loofah 2.25.2 → 2.25.3,
+   crass 1.0.7 → 1.0.8, addressable 2.9.0 → 2.9.2. (Tiêu đề commit chỉ nêu ba gem; nội dung commit nâng đủ 11 gem trên.)
+7. **Commit và xác nhận:** https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/e7c49235b1f9d6a09734586af0c617862c3495b7 · `bin/bundler-audit check` → `No vulnerabilities found`;
+   `bin/importmap audit` → `No vulnerable packages found` (ảnh `sec-7.png`); `bin/rails test` → 131 runs, 0 failures;
+   build lại Docker → db, app healthy; CI xanh.
+
+## BUG-07 — Gửi JSON hỏng bị trả 500 thay vì 400
+
+1. **Mã và mức độ:** BUG-07 · MINOR — lỗi phía người gửi bị coi là sự cố hệ thống: trả `500 LOI_HE_THONG` và ghi log
+   mức ERROR (báo động giả cho người vận hành). Không lộ thông tin bên trong, chức năng chính không bị ảnh hưởng.
+2. **Phát hiện bởi:** checklist bảo mật mục 5a (OWASP A10 – xử lý tình huống bất thường) — gửi thân JSON hỏng tới
+   `POST /api/customers` (ảnh `docs/screenshots/BUG-07-truoc.png`).
+3. **Triệu chứng:** `HTTP/1.1 500 Internal Server Error` ·
+   `{"error":"LOI_HE_THONG", … "ma_tra_cuu":"4c57e01f-56c1-4a45-8ddf-7c1cc368cb3d"}`.
+4. **Cách tái lập:** `curl -X POST http://localhost:3000/api/customers -H "Authorization: Bearer <token>"
+   -H "Content-Type: application/json" -d '{"name":"A", phone'` → 500; luôn xảy ra.
+5. **Nguyên nhân:** Rails ném `ActionDispatch::Http::Parameters::ParseError` khi đọc tham số; `Api::BaseController`
+   chỉ có `rescue_from StandardError` chung nên lỗi rơi vào nhánh 500.
+6. **Cách sửa:** thêm `rescue_from ActionDispatch::Http::Parameters::ParseError` trả `400 DU_LIEU_KHONG_HOP_LE`
+   ("Nội dung gửi lên không phải JSON hợp lệ.") trong `src/app/controllers/api/base_controller.rb`; thêm test hồi quy
+   "JSON hỏng: 400 …" vào `src/test/integration/api_crud_test.rb`.
+7. **Commit và xác nhận:** https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/1ac9df33586f8236c8a7d43f2564de7d819fc28f · test mới PASS; chạy lại checklist mục 5 → `HTTP/1.1 400 Bad Request`,
+   `DU_LIEU_KHONG_HOP_LE` (ảnh `sec-5.png`); `bin/rails test` → 131 runs, 0 failures.
+
+## BUG-08 — Mật khẩu demo bị in ra log container
+
+1. **Mã và mức độ:** BUG-08 · MINOR — mật khẩu của tài khoản demo (dữ liệu mẫu, đã ghi trong Deployment Guide) nằm
+   trong log container, trái nguyên tắc "log không ghi mật khẩu" (OWASP A09). Không có dữ liệu thật bị lộ.
+2. **Phát hiện bởi:** checklist bảo mật mục 6 — `docker compose logs app | grep -n 'Mekong@2026'`
+   (ảnh `docs/screenshots/BUG-08-truoc.png`).
+3. **Triệu chứng:** 2 dòng log: `Nhân viên tiếp nhận: quoc@mekong.vn / Mekong@2026 · lấy token qua POST /api/session`
+   và dòng tương tự cho `phu@mekong.vn`.
+4. **Cách tái lập:** `docker compose down -v && docker compose up -d --build` → `docker compose logs app | grep Mekong@2026`
+   → 2 dòng; luôn xảy ra ở lần khởi động đầu (lúc seed chạy).
+5. **Nguyên nhân:** `db/seeds.rb` in tài khoản demo kèm mật khẩu ra màn hình; `bin/docker-entrypoint` chạy seed khi
+   khởi động nên đầu ra nằm lại trong log container. Lần sửa trước (`967bf5a`) mới bỏ token, còn sót mật khẩu.
+6. **Cách sửa:** `src/db/seeds.rb` chỉ in mật khẩu và token ở môi trường development; môi trường khác chỉ in email kèm
+   chỉ dẫn tới Deployment Guide. Thêm test `src/test/integration/seeds_output_test.rb` chạy seed và kiểm tra đầu ra
+   không chứa mật khẩu, không chứa token.
+7. **Commit và xác nhận:** https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/50d456d655e82e1e110d8b67bc70ff736a95813a · test mới PASS; `down -v` → `up` → chạy lại checklist mục 6 → `(không có)`
+   (ảnh `sec-6.png`); `bin/rails test` → 131 runs, 0 failures.

@@ -1,0 +1,278 @@
+[1m════ MỤC 1 · Không có secret nào trong repo (A02) ════[0m
+2026-11-10 14:17:47
+
+$ git ls-files | grep -E '(^|/)\.env$|master\.key$'
+(rỗng)
+
+$ git log --all --oneline -- .env src/.env src/config/master.key
+(rỗng)
+
+$ git check-ignore -v .env src/config/master.key
+.gitignore:6:.env	.env
+.gitignore:11:src/config/master.key	src/config/master.key
+
+$ git grep -niIE '(secret_key_base|api_key|access_key|private_key)["]?[[:space:]]*[:=][[:space:]]*["'\''][A-Za-z0-9+/_-]{16,}' -- . ':!*.lock'
+(rỗng)
+
+$ docker compose exec -T app sh -c 'ls /rails/.env /rails/config/master.key 2>&1'
+ls: cannot access '/rails/.env': No such file or directory
+ls: cannot access '/rails/config/master.key': No such file or directory
+[1m════ MỤC 2 · Dữ liệu vào được kiểm ở tầng ứng dụng (A05) ════[0m
+2026-11-10 14:18:13
+
+$ git grep -nIE '(where|find_by_sql|execute|order|pluck|select)\(\s*"[^"]*#\{' -- src/app src/lib
+src/app/services/customer_service.rb:18:      Customer.connection.execute("SELECT pg_advisory_xact_lock(#{CODE_LOCK_KEY})")
+src/app/services/request_code_generator.rb:11:    WarrantyRequest.connection.execute("SELECT pg_advisory_xact_lock(#{LOCK_KEY})")
+  ↳ chỉ được phép là hằng số trong mã (khóa advisory lock), không có dữ liệu người dùng ghép vào SQL
+
+$ curl -s -G http://localhost:3000/api/customers --data-urlencode "q=' OR '1'='1" -H "Authorization: Bearer $nv"; echo
+{"data":[],"meta":{"trang":1,"so_trang":1,"tong_so":0,"moi_trang":20,"tim_theo":"name"}}
+
+$ curl -s -i -X POST http://localhost:3000/api/customers -H "Authorization: Bearer $nv" -H 'Content-Type: application/json' -d '{"name":"Thử sai","phone":"091234567"}' | status
+HTTP/1.1 400 Bad Request
+{"error":"DU_LIEU_KHONG_HOP_LE","message":"Thông tin khách hàng không hợp lệ.","chi_tiet":{"cac_truong":[{"truong":"phone","ly_do":"phải gồm 10 chữ số, bắt đầu bằng 0"}]}}
+[1m════ MỤC 3 · Kiểm soát truy cập theo vai trò (A01) ════[0m
+2026-11-10 14:18:30
+
+$ curl -s -i http://localhost:3000/api/warranty_requests | status
+HTTP/1.1 401 Unauthorized
+{"error":"CHUA_XAC_THUC","message":"Thiếu hoặc sai token. Gửi header Authorization: Bearer <api_token>."}
+
+Quản lý trung tâm (phu@mekong.vn) thử sửa / xóa / đổi trạng thái yêu cầu id=6:
+Số yêu cầu trước: 30
+
+$ curl -s -i -X PATCH http://localhost:3000/api/warranty_requests/6 -H "Authorization: Bearer $ql" -H 'Content-Type: application/json' -d '{"issue_description":"Sửa trộm"}' | status
+HTTP/1.1 403 Forbidden
+{"error":"KHONG_CO_QUYEN","message":"Vai trò Quản lý trung tâm không có quyền thực hiện thao tác này."}
+
+$ curl -s -i -X DELETE http://localhost:3000/api/warranty_requests/6 -H "Authorization: Bearer $ql" | status
+HTTP/1.1 403 Forbidden
+{"error":"KHONG_CO_QUYEN","message":"Vai trò Quản lý trung tâm không có quyền thực hiện thao tác này."}
+
+$ curl -s -i -X PATCH http://localhost:3000/api/warranty_requests/6/status -H "Authorization: Bearer $ql" -H 'Content-Type: application/json' -d '{"status":"in_progress"}' | status
+HTTP/1.1 403 Forbidden
+{"error":"KHONG_CO_QUYEN","message":"Vai trò Quản lý trung tâm không có quyền thực hiện thao tác này."}
+Số yêu cầu sau:   30
+[1m════ MỤC 4 · Mật khẩu, dữ liệu nhạy cảm được băm / mã hóa (A04 · A07) ════[0m
+2026-11-10 14:18:53
+
+$ docker compose exec -T app bin/rails runner 'User.order(:id).each { |u| puts "#{u.email_address} | password_digest = #{u.password_digest[0, 12]}… (#{u.password_digest.length} ký tự)" }'
+quoc@mekong.vn | password_digest = $2a$12$lytid… (60 ký tự)
+phu@mekong.vn | password_digest = $2a$12$3JSjp… (60 ký tự)
+
+$ docker compose exec -T app bin/rails runner 'p User.column_names.grep(/password|token|expire/)'
+["password_digest", "api_token"]
+[1m════ MỤC 5 · Thông báo lỗi không lộ cấu trúc bên trong (A10 · A02) ════[0m
+2026-11-10 14:19:14
+
+--- 5a. Gửi JSON hỏng ---
+
+$ curl -s -i -X POST http://localhost:3000/api/customers -H "Authorization: Bearer $nv" -H 'Content-Type: application/json' -d '{"name":"A", phone' | status
+HTTP/1.1 500 Internal Server Error
+{"error":"LOI_HE_THONG","message":"Hệ thống đang gặp sự cố. Vui lòng thử lại; nếu vẫn lỗi, báo cho quản trị kèm mã tra cứu: 4c57e01f-56c1-4a45-8ddf-7c1cc368cb3d","chi_tiet":{"ma_tra_cuu":"4c57e01f-56c1-4a45-8ddf-7c1cc368cb3d"}}
+--- 5b. Đường dẫn không tồn tại ---
+
+$ curl -s -i http://localhost:3000/api/khong-ton-tai -H 'Accept: application/json' | status
+HTTP/1.1 404 Not Found
+{"status":404,"error":"Not Found"}
+--- 5c. Tắt CSDL rồi gọi API ---
+
+$ docker compose stop db
+ Container smartcrm-l2-db-1 Stopping 
+ Container smartcrm-l2-db-1 Stopped 
+
+$ curl -s -i http://localhost:3000/api/health | status
+HTTP/1.1 503 Service Unavailable
+{"status":"degraded","db":"khong ket noi duoc","ma_tra_cuu":"2948cae7-54da-489f-b82c-69134943d23c"}
+
+$ curl -s -i http://localhost:3000/api/warranty_requests -H "Authorization: Bearer $nv" | status
+HTTP/1.1 503 Service Unavailable
+{"error":"CSDL_KHONG_KHA_DUNG","message":"Hệ thống tạm thời không truy cập được dữ liệu. Vui lòng thử lại sau ít phút. Mã tra cứu: 53090dcf-33ac-4ec8-bda3-c89d54bab1d2","chi_tiet":{"ma_tra_cuu":"53090dcf-33ac-4ec8-bda3-c89d54bab1d2"}}
+
+$ curl -s http://localhost:3000/api/warranty_requests -H "Authorization: Bearer $nv" | grep -ciE 'pg::|postgres://|backtrace|/rails/|db:5432|password' || true
+0
+  ↳ số dòng chứa tên lớp lỗi / chuỗi kết nối / đường dẫn mã nguồn trong phản hồi (mong đợi 0)
+
+$ docker compose start db
+ Container smartcrm-l2-db-1 Starting 
+ Container smartcrm-l2-db-1 Started 
+
+$ curl -s http://localhost:3000/api/health; echo
+{"status":"ok","db":"ok"}
+[1m════ MỤC 6 · Nhật ký không ghi secret, dữ liệu cá nhân (A09) ════[0m
+2026-11-10 14:19:37
+
+$ (đếm số lần mỗi API token thật xuất hiện trong log container – không in token ra màn hình)
+token người dùng #1: 0 lần
+token người dùng #2: 0 lần
+
+$ docker compose logs app 2>&1 | grep -cE '0[0-9]{9}' || true
+0
+  ↳ số dòng log có số điện thoại 10 chữ số (mong đợi 0)
+
+$ docker compose logs app 2>&1 | grep -iE 'password|q=' | tail -4
+app-1  | [1210f0a9-74d2-4b66-9913-802923c18460]   Parameters: {"email_address" => "[FILTERED]", "password" => "[FILTERED]", "session" => {}}
+app-1  | [b0514cd7-89c5-41b5-8d54-bafceaec4980] Started GET "/api/customers?q=[FILTERED]" for 172.18.0.1 at 2026-11-10 14:18:14 +0000
+app-1  | [2d1ea48e-2461-4b8f-bd30-9b7e9f5b0cc0]   Parameters: {"email_address" => "[FILTERED]", "password" => "[FILTERED]", "session" => {}}
+app-1  | [916fbcd7-aed3-4609-99c7-92626c520ce0]   Parameters: {"email_address" => "[FILTERED]", "password" => "[FILTERED]", "session" => {}}
+  ↳ tham số mật khẩu / từ khóa tra cứu phải hiện [FILTERED]
+
+$ docker compose logs app 2>&1 | grep -n 'Mekong@2026' || echo '(không có)'
+8:app-1  |   Nhân viên tiếp nhận: quoc@mekong.vn / Mekong@2026 · lấy token qua POST /api/session
+9:app-1  |   Quản lý trung tâm: phu@mekong.vn / Mekong@2026 · lấy token qua POST /api/session
+[1m════ MỤC 7 · Phụ thuộc ghim phiên bản, đã kiểm lỗ hổng (A03) ════[0m
+2026-11-10 14:19:58
+
+$ git ls-files src/Gemfile.lock src/config/importmap.rb
+src/Gemfile.lock
+src/config/importmap.rb
+
+$ (cd src && bin/bundler-audit check --update 2>&1 | tail -6)
+Criticality: Medium
+URL: https://github.com/rails/rails-html-sanitizer/security/advisories/GHSA-h7wh-q2qr-458c
+Title: Possible XSS via shared scrubber state in concurrent rails-html-sanitizer calls
+Solution: update to '>= 1.7.2'
+
+Vulnerabilities found!
+
+$ (cd src && bin/importmap audit 2>&1 | tail -6)
+No vulnerable packages found
+
+$ (cd src && bin/brakeman --no-pager -q --no-exit-on-warn 2>&1 | tail -15)
+Category: HTTP Verb Confusion
+Check: VerbConfusion
+Message: Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`
+Code: session[:return_to_after_authenticating] = request.url if request.get?
+File: app/controllers/concerns/authentication.rb
+Line: 40
+
+Confidence: Weak
+Category: HTTP Verb Confusion
+Check: VerbConfusion
+Message: Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`
+Code: request.get? ? (request.fullpath) : ("/")
+File: lib/middleware/database_unavailable_responder.rb
+Line: 52
+
+[1m════ MỤC 7 · Phụ thuộc ghim phiên bản, đã kiểm lỗ hổng (A03) ════[0m
+2026-11-10 14:25:22
+
+$ git ls-files src/Gemfile.lock src/config/importmap.rb
+src/Gemfile.lock
+src/config/importmap.rb
+
+$ (cd src && bin/bundler-audit check --update 2>&1 | tail -6)
+Updated ruby-advisory-db
+ruby-advisory-db:
+  advisories:	1353 advisories
+  last updated:	2026-11-09 08:16:45 -0500
+  commit:	bc80fbb16e7b8de1cad903bc061d1da65e15edcb
+No vulnerabilities found
+
+$ (cd src && bin/importmap audit 2>&1 | tail -6)
+No vulnerable packages found
+
+$ (cd src && bin/brakeman --no-pager -q --no-exit-on-warn 2>&1 | tail -15)
+Category: HTTP Verb Confusion
+Check: VerbConfusion
+Message: Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`
+Code: session[:return_to_after_authenticating] = request.url if request.get?
+File: app/controllers/concerns/authentication.rb
+Line: 40
+
+Confidence: Weak
+Category: HTTP Verb Confusion
+Check: VerbConfusion
+Message: Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`
+Code: request.get? ? (request.fullpath) : ("/")
+File: lib/middleware/database_unavailable_responder.rb
+Line: 52
+
+[1m════ MỤC 5 · Thông báo lỗi không lộ cấu trúc bên trong (A10 · A02) ════[0m
+2026-11-10 14:30:31
+
+--- 5a. Gửi JSON hỏng ---
+
+$ curl -s -i -X POST http://localhost:3000/api/customers -H "Authorization: Bearer $nv" -H 'Content-Type: application/json' -d '{"name":"A", phone' | status
+HTTP/1.1 400 Bad Request
+{"error":"DU_LIEU_KHONG_HOP_LE","message":"Nội dung gửi lên không phải JSON hợp lệ."}
+--- 5b. Đường dẫn không tồn tại ---
+
+$ curl -s -i http://localhost:3000/api/khong-ton-tai -H 'Accept: application/json' | status
+HTTP/1.1 404 Not Found
+{"status":404,"error":"Not Found"}
+--- 5c. Tắt CSDL rồi gọi API ---
+
+$ docker compose stop db
+ Container smartcrm-l2-db-1 Stopping 
+ Container smartcrm-l2-db-1 Stopped 
+
+$ curl -s -i http://localhost:3000/api/health | status
+HTTP/1.1 503 Service Unavailable
+{"status":"degraded","db":"khong ket noi duoc","ma_tra_cuu":"c2591792-96ad-4e57-b6c2-d49aca063254"}
+
+$ curl -s -i http://localhost:3000/api/warranty_requests -H "Authorization: Bearer $nv" | status
+HTTP/1.1 503 Service Unavailable
+{"error":"CSDL_KHONG_KHA_DUNG","message":"Hệ thống tạm thời không truy cập được dữ liệu. Vui lòng thử lại sau ít phút. Mã tra cứu: 7a04f837-fd9a-4631-86bc-8ec62a310d36","chi_tiet":{"ma_tra_cuu":"7a04f837-fd9a-4631-86bc-8ec62a310d36"}}
+
+$ curl -s http://localhost:3000/api/warranty_requests -H "Authorization: Bearer $nv" | grep -ciE 'pg::|postgres://|backtrace|/rails/|db:5432|password' || true
+0
+  ↳ số dòng chứa tên lớp lỗi / chuỗi kết nối / đường dẫn mã nguồn trong phản hồi (mong đợi 0)
+
+$ docker compose start db
+ Container smartcrm-l2-db-1 Starting 
+ Container smartcrm-l2-db-1 Started 
+
+$ curl -s http://localhost:3000/api/health; echo
+{"status":"ok","db":"ok"}
+[1m════ MỤC 6 · Nhật ký không ghi secret, dữ liệu cá nhân (A09) ════[0m
+2026-11-10 14:30:56
+
+$ (đếm số lần mỗi API token thật xuất hiện trong log container – không in token ra màn hình)
+token người dùng #1: 0 lần
+token người dùng #2: 0 lần
+
+$ docker compose logs app 2>&1 | grep -cE '0[0-9]{9}' || true
+0
+  ↳ số dòng log có số điện thoại 10 chữ số (mong đợi 0)
+
+$ docker compose logs app 2>&1 | grep -iE 'password|q=' | tail -4
+app-1  | [e6006a85-71c0-4588-bfaf-26aa4e8cde4e]   Parameters: {"email_address" => "[FILTERED]", "password" => "[FILTERED]", "session" => {}}
+  ↳ tham số mật khẩu / từ khóa tra cứu phải hiện [FILTERED]
+
+$ docker compose logs app 2>&1 | grep -n 'Mekong@2026' || echo '(không có)'
+(không có)
+[1m════ MỤC 7 · Phụ thuộc ghim phiên bản, đã kiểm lỗ hổng (A03) ════[0m
+2026-11-10 14:31:17
+
+$ git ls-files src/Gemfile.lock src/config/importmap.rb
+src/Gemfile.lock
+src/config/importmap.rb
+
+$ (cd src && bin/bundler-audit check --update 2>&1 | tail -6)
+Updated ruby-advisory-db
+ruby-advisory-db:
+  advisories:	1353 advisories
+  last updated:	2026-11-09 08:16:45 -0500
+  commit:	bc80fbb16e7b8de1cad903bc061d1da65e15edcb
+No vulnerabilities found
+
+$ (cd src && bin/importmap audit 2>&1 | tail -6)
+No vulnerable packages found
+
+$ (cd src && bin/brakeman --no-pager -q --no-exit-on-warn 2>&1 | tail -15)
+Category: HTTP Verb Confusion
+Check: VerbConfusion
+Message: Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`
+Code: session[:return_to_after_authenticating] = request.url if request.get?
+File: app/controllers/concerns/authentication.rb
+Line: 40
+
+Confidence: Weak
+Category: HTTP Verb Confusion
+Check: VerbConfusion
+Message: Potential HTTP verb confusion. `HEAD` is routed like `GET` but `request.get?` will return `false`
+Code: request.get? ? (request.fullpath) : ("/")
+File: lib/middleware/database_unavailable_responder.rb
+Line: 52
+

@@ -285,7 +285,8 @@ cdtn1-thaianquoc-2/
 | `docs/srs.md` | Đặc tả yêu cầu (SRS) |
 | `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-29) |
 | `docs/deployment-guide.md` | **Deployment Guide** (tiếng Anh) – dựng hệ thống bằng Docker, kiểm tra, xử lý sự cố |
-| `docs/test-plan.md` · `docs/test-report.md` · `docs/bug-log.md` | Test Plan · Test Report 16 test case chạy thật · Bug Log |
+| `docs/test-plan.md` · `docs/test-report.md` · `docs/bug-log.md` | Test Plan · Test Report 16 test case chạy thật · Bug Log (8 bug) |
+| `docs/checklist-bao-mat.md` | Checklist bảo mật 7 mục (OWASP Top 10:2025), mỗi mục có minh chứng chạy thật – `scripts/kiem-bao-mat.sh` |
 | `docs/api-docs.md` | Tài liệu API JSON |
 | `docs/api-ket-qua-thuc-te.md` | Request / response thật, sinh bởi `docs/scripts/goi-api.sh` |
 | `docs/postman/SmartCRM_API_BT2.postman_collection.json` | Postman collection 40 request có test tự kiểm tra |

@@ -97,7 +97,7 @@ Demo accounts (sample data, not real secrets — passwords are stored as bcrypt 
 | 3 | `docker compose exec app bin/rails runner 'puts "users=#{User.count} customers=#{Customer.count} devices=#{Device.count} requests=#{WarrantyRequest.count}"'` | `users=2 customers=310 devices=31 requests=30` |
 | 4 | `curl -s -X POST http://localhost:3000/api/session -H "Content-Type: application/json" -d '{"email_address":"quoc@mekong.vn","password":"Mekong@2026"}'` | HTTP 200, JSON with `"token"`, `"role":"receptionist"` and the permission list |
 | 5 | Open `http://localhost:3000`, sign in as `quoc@mekong.vn` | Redirected to **Tra cứu khách hàng**; searching `0843145885` shows customer **Bùi Tuấn Huy, KH-114121** |
-| 6 | `docker compose exec -e RAILS_ENV=test app bin/rails db:test:prepare test` | `129 runs, 578 assertions, 0 failures, 0 errors, 0 skips` |
+| 6 | `docker compose exec -e RAILS_ENV=test app bin/rails db:test:prepare test` | `131 runs, 591 assertions, 0 failures, 0 errors, 0 skips` |
 
 Step 6 runs the whole automated test suite inside the container against a separate test database;
 it does not touch the sample data.

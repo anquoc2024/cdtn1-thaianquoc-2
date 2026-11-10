@@ -21,7 +21,7 @@ Thái An Quốc – 2374802012635 · Smart CRM – Mekong Mobile · Rails 8.1 + 
 
 ## 2. Loại test và số lượng
 
-- Bộ test tự động: 129 test (128 cũ + test chống SQL injection của TC-16), chạy bằng MỘT lệnh `bin/rails test` (thư mục `src`).
+- Bộ test tự động: 131 test (128 cũ + test chống SQL injection của TC-16 + 2 test hồi quy BUG-07, BUG-08), chạy bằng MỘT lệnh `bin/rails test` (thư mục `src`).
 - Test Report chọn 16 test case **theo chức năng**: đăng nhập / đăng xuất (TC-01, TC-02, TC-13), tra cứu khách hàng
   (TC-03, TC-04, TC-16), thêm khách hàng (TC-05, TC-06), tạo yêu cầu (TC-07, TC-08), danh sách yêu cầu (TC-09),
   cập nhật trạng thái (TC-10), sửa / xóa yêu cầu (TC-14, TC-15), phân quyền (TC-11), nạp dữ liệu (TC-12).
