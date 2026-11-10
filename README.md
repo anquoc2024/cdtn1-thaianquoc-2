@@ -9,6 +9,7 @@
 | Giảng viên | TS. Nguyễn Trí Hải |
 | Repo | https://github.com/anquoc2024/cdtn1-thaianquoc-2 |
 | Phiên bản nộp BT2 | tag [`v0.2`](https://github.com/anquoc2024/cdtn1-thaianquoc-2/releases/tag/v0.2) · báo cáo trong `BT2_2374802012635_ThaiAnQuoc/` · ảnh minh chứng trong `docs/screenshots/` |
+| Phiên bản nộp BT3 | tag [`v1.0`](https://github.com/anquoc2024/cdtn1-thaianquoc-2/releases/tag/v1.0) · chạy bằng Docker: [`docs/deployment-guide.md`](docs/deployment-guide.md) |
 
 ## 1. Giới thiệu
 
