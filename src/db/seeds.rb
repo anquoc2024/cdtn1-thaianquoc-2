@@ -27,5 +27,7 @@ puts "Xong: #{User.count} người dùng, #{Customer.count} khách hàng, #{Devi
   user = User.find_by!(full_name: name)
   user.update!(email_address: email, password: "Mekong@2026") if user.password_digest.blank?
   user.regenerate_api_token if user.api_token.blank?
-  puts "  #{user.role_label}: #{email} / Mekong@2026 · API token: #{user.api_token}"
+  # Token chỉ in ở development – không để lộ vào log container (checklist bảo mật mục 6)
+  token_note = Rails.env.development? ? " · API token: #{user.api_token}" : " · lấy token qua POST /api/session"
+  puts "  #{user.role_label}: #{email} / Mekong@2026#{token_note}"
 end
