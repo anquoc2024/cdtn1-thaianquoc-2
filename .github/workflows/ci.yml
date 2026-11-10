@@ -1,0 +1,32 @@
+# CI – chạy toàn bộ test trên máy sạch của GitHub mỗi lần push / pull request (Buổi 13 – Phần 04)
+# Đặt ở GỐC repo; tệp src/.github/workflows/ci.yml do Rails tạo sẵn sẽ KHÔNG được GitHub chạy.
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test          # giá trị thử cho CSDL tạm của CI, không phải secret
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:test@localhost:5432/src_test
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: src           # đọc phiên bản Ruby trong src/.ruby-version
+          bundler-cache: true              # cài đúng theo src/Gemfile.lock
+      - run: bin/rails db:prepare
+      - run: bin/rails test
