@@ -287,7 +287,8 @@ cdtn1-thaianquoc-2/
 | `docs/deployment-guide.md` | **Deployment Guide** (tiếng Anh) – dựng hệ thống bằng Docker, kiểm tra, xử lý sự cố |
 | `docs/test-plan.md` · `docs/test-report.md` · `docs/bug-log.md` | Test Plan · Test Report 16 test case chạy thật · Bug Log (8 bug) |
 | `docs/checklist-bao-mat.md` | Checklist bảo mật 7 mục (OWASP Top 10:2025), mỗi mục có minh chứng chạy thật – `scripts/kiem-bao-mat.sh` |
-| `docs/api-docs.md` | Tài liệu API JSON |
+| `docs/api-docs.md` | **API documentation** (tiếng Anh) – 21 endpoint, mỗi endpoint 7 mục, ví dụ thật |
+| `docs/api-examples.md` | 46 request / response thật trên Docker, sinh bởi `docs/scripts/goi-api-docker.sh` |
 | `docs/api-ket-qua-thuc-te.md` | Request / response thật, sinh bởi `docs/scripts/goi-api.sh` |
 | `docs/postman/SmartCRM_API_BT2.postman_collection.json` | Postman collection 40 request có test tự kiểm tra |
 | `docs/ai-disclosure.md` | Khai báo sử dụng công cụ AI |
