@@ -57,6 +57,20 @@ Ba màn hình lấy dữ liệu qua **API JSON** (`/api/...`) bằng một lớp
 
 ## 3. Cài đặt và chạy
 
+### Cách nhanh nhất: Docker (Bài tập 3) – chỉ cần Docker và Git
+
+```bash
+git clone https://github.com/anquoc2024/cdtn1-thaianquoc-2.git && cd cdtn1-thaianquoc-2
+cp .env.example .env
+docker compose up -d --build
+```
+
+Lần chạy đầu tự tạo CSDL và nạp dữ liệu mẫu; mở http://localhost:3000, đăng nhập `quoc@mekong.vn` / `Mekong@2026`.
+Hướng dẫn đầy đủ (tiếng Anh, có bảng biến môi trường, số bản ghi đối chiếu, cách kiểm tra, xử lý sự cố):
+**[`docs/deployment-guide.md`](docs/deployment-guide.md)**.
+
+### Chạy trực tiếp trên máy (môi trường phát triển)
+
 Mỗi bước là một lệnh, chạy theo đúng thứ tự, bắt đầu từ thư mục gốc của repo.
 
 ### 3.1. Lấy mã nguồn
@@ -72,11 +86,10 @@ sudo service postgresql start                  # WSL: chạy lại mỗi khi m�
 sudo -u postgres createuser -s "$USER"         # user CSDL trùng tên user Ubuntu
 ```
 
-### 3.3. Biến môi trường (tùy chọn ở môi trường phát triển)
-```bash
-cp .env.example .env                           # sửa giá trị nếu không dùng kết nối socket mặc định
-set -a; source .env; set +a                    # chỉ cần khi đã sửa .env
-```
+### 3.3. Biến môi trường (không cần ở môi trường phát triển)
+Chạy trực tiếp trên máy thì **không** cần tệp `.env`: Rails kết nối PostgreSQL qua socket bằng user Ubuntu.
+`.env.example` dành cho gói Docker – **không** `source .env` vào terminal, vì `DB_USER` / `DB_PASSWORD`
+trong đó sẽ đè lên kết nối socket mặc định của `src/config/database.yml`.
 
 ### 3.4. Cài thư viện Ruby
 ```bash
@@ -271,6 +284,8 @@ cdtn1-thaianquoc-2/
 |---|---|
 | `docs/srs.md` | Đặc tả yêu cầu (SRS) |
 | `docs/thay-doi-thiet-ke.md` | Nhật ký thay đổi thiết kế so với BT1 (TD-01 → TD-29) |
+| `docs/deployment-guide.md` | **Deployment Guide** (tiếng Anh) – dựng hệ thống bằng Docker, kiểm tra, xử lý sự cố |
+| `docs/test-plan.md` · `docs/test-report.md` · `docs/bug-log.md` | Test Plan · Test Report 16 test case chạy thật · Bug Log |
 | `docs/api-docs.md` | Tài liệu API JSON |
 | `docs/api-ket-qua-thuc-te.md` | Request / response thật, sinh bởi `docs/scripts/goi-api.sh` |
 | `docs/postman/SmartCRM_API_BT2.postman_collection.json` | Postman collection 40 request có test tự kiểm tra |
