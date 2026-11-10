@@ -1,0 +1,39 @@
+# Những gì KHÔNG chép vào image (build context = gốc repo)
+
+# Git, CI, tài liệu, bài nộp – image không cần
+.git
+.github
+docs
+scripts
+db
+BT1_*
+BT2_*
+README.md
+
+# Biến môi trường thật, khóa – không bao giờ vào image
+.env
+.env.*
+**/.env
+**/.env.*
+src/config/master.key
+src/config/credentials/*.key
+
+# Dữ liệu: chỉ lấy bộ mẫu data/mau/
+data/*
+!data/mau
+
+# Tệp sinh ra khi chạy trên máy sinh viên
+src/log/*
+!src/log/.keep
+src/tmp/*
+!src/tmp/.keep
+src/storage/*
+!src/storage/.keep
+src/public/assets
+src/coverage
+src/node_modules
+src/vendor/bundle
+src/.bundle
+src/.kamal
+**/*.log
+**/.DS_Store

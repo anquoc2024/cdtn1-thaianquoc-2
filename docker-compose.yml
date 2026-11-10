@@ -1,0 +1,49 @@
+# ============================================================
+# Gói đóng gói BT3 (TP4) – hai lệnh từ thư mục trống (sau khi clone tag v1.0):
+#     cp .env.example .env
+#     docker compose up -d --build
+# Kiểm tra:  docker compose ps   → db và app đều "healthy"
+#            curl http://localhost:3000/api/health → {"status":"ok","db":"ok"}
+# ============================================================
+name: smartcrm-l2
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${DB_USER}          # lấy từ .env – không ghi cứng
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # PostgreSQL 18 lưu dữ liệu trong /var/lib/postgresql/18/docker → gắn volume ở thư mục cha
+      - dbdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    # Không có "ports": CSDL chỉ mở trong mạng nội bộ của compose (OWASP A02)
+
+  app:
+    build: .
+    image: smartcrm-l2-app
+    env_file: .env                     # mọi biến của ứng dụng
+    environment:
+      RAILS_ENV: production
+      DB_HOST: db                      # TÊN DỊCH VỤ, không phải localhost
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy     # chờ CSDL SẴN SÀNG, không chỉ chờ container khởi động
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 120s               # lần đầu: tạo CSDL + nạp dữ liệu mẫu
+      start_interval: 5s
+    restart: unless-stopped
+
+volumes:
+  dbdata: {}

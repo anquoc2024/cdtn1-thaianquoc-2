@@ -18,6 +18,11 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Gói Docker (BT3) đặt DB_HOST=db, DB_USER, DB_PASSWORD qua .env / docker-compose.yml.
+  # Chạy trực tiếp trên máy thì không đặt → để trống → kết nối qua socket như trước.
+  host: <%= ENV["DB_HOST"] %>
+  username: <%= ENV["DB_USER"] %>
+  password: <%= ENV["DB_PASSWORD"] %>
 
 
 development:
@@ -87,18 +92,18 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: src_production
-    username: src
-    password: <%= ENV["SRC_DATABASE_PASSWORD"] %>
+    database: <%= ENV.fetch("DB_NAME", "src_production") %>
+    username: <%= ENV.fetch("DB_USER", "src") %>
+    password: <%= ENV["DB_PASSWORD"] || ENV["SRC_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
-    database: src_production_cache
+    database: <%= ENV.fetch("DB_NAME", "src_production") %>_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: src_production_queue
+    database: <%= ENV.fetch("DB_NAME", "src_production") %>_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: src_production_cable
+    database: <%= ENV.fetch("DB_NAME", "src_production") %>_cable
     migrations_paths: db/cable_migrate

@@ -1,7 +1,9 @@
 #!/bin/bash -e
-
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# Khởi động container ứng dụng.
+# Khi chạy server: db:prepare tạo các CSDL còn thiếu, nạp bảng từ schema và – CHỈ ở lần đầu
+# (CSDL còn trống) – chạy db/seeds.rb: tài khoản demo, mức ưu tiên, dữ liệu mẫu data/mau/.
+# Những lần sau chỉ chạy migration còn thiếu, không nạp lại dữ liệu.
+if [[ " $* " == *" server "* ]]; then
   ./bin/rails db:prepare
 fi
 
