@@ -70,4 +70,16 @@ class CustomerLookupTest < ActionDispatch::IntegrationTest
     get search_customers_path, params: { q: "a" }
     assert_select ".error-text", /ít nhất 2 ký tự/
   end
+
+  test "chống SQL injection (A05): ' OR '1'='1 chỉ là chuỗi tìm kiếm, không trả về toàn bộ khách" do
+    Customer.create!(code: "KH-900002", name: "Trần Thị Hai", phone: "0909000222")
+
+    ["' OR '1'='1", "'; DROP TABLE customers; --"].each do |query|
+      get search_customers_path, params: { q: query }
+      assert_response :success
+      assert_select ".alert-notfound"
+      assert_empty found_names, "Từ khóa #{query.inspect} không được trả về khách nào"
+    end
+    assert_equal 2, Customer.count, "Bảng customers phải còn nguyên"
+  end
 end
