@@ -92,7 +92,7 @@ sec7() {
   run "git ls-files src/Gemfile.lock src/config/importmap.rb"
   run "(cd src && bin/bundler-audit check --update 2>&1 | tail -6)"
   run "(cd src && bin/importmap audit 2>&1 | tail -6)"
-  run "(cd src && bin/brakeman --no-pager -q --no-exit-on-warn 2>&1 | tail -15)"
+  run "(cd src && bin/brakeman --no-pager -q --no-exit-on-warn 2>&1 | grep -E '^(Confidence|Category|File|Line):')"
 }
 
 curl -fs "$BASE/api/health" >/dev/null || { echo "Hệ thống chưa chạy ở $BASE – chạy: docker compose up -d rồi thử lại"; exit 1; }

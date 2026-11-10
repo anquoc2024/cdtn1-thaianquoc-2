@@ -76,10 +76,14 @@ Phát hiện khi kiểm: 2 dòng log chứa mật khẩu demo `Mekong@2026` do s
 ## 7. Phụ thuộc ghim phiên bản, đã kiểm lỗ hổng — ĐÃ LÀM (sau khi sửa BUG-06)
 
 Minh chứng: `src/Gemfile.lock` và `src/config/importmap.rb` đã commit (ghim phiên bản gem và gói JavaScript) ·
-`bin/importmap audit` → `No vulnerable packages found` · `bin/brakeman` (phân tích tĩnh) → 2 cảnh báo mức **Weak**
-loại *HTTP Verb Confusion* (`authentication.rb:40`, `database_unavailable_responder.rb:52`): request `HEAD` không
-được ghi nhớ làm trang quay lại sau đăng nhập — không ảnh hưởng quyền truy cập, ghi nhận và chưa sửa.
+`bin/importmap audit` → `No vulnerable packages found` · `bin/brakeman` (phân tích tĩnh) → 3 cảnh báo, cả 3 đều mức tin cậy **Weak**, cùng loại *HTTP Verb Confusion*
+("request `HEAD` được định tuyến như `GET` nhưng `request.get?` trả `false`"):
+`app/controllers/application_controller.rb:44` và `lib/middleware/database_unavailable_responder.rb:52` (chọn đường dẫn
+cho nút "Thử lại" trên trang lỗi), `app/controllers/concerns/authentication.rb:40` (ghi nhớ trang để quay lại sau đăng
+nhập). Với request `HEAD`, hậu quả chỉ là nút "Thử lại" trỏ về trang trước / trang chủ, hoặc không ghi nhớ trang quay
+lại; không có nhánh nào cấp quyền hay đọc / ghi dữ liệu theo `request.get?`. Đánh giá: không phải lỗ hổng — ghi nhận,
+chưa sửa.
 Phát hiện khi kiểm: `bin/bundler-audit check --update` báo 44 lỗ hổng đã công bố ở 11 gem (1 Critical, 5 High) →
 **BUG-06**, sửa ở commit `e7c4923` (Rails 8.1.4.1, rack 3.2.8, nokogiri 1.19.7, rails-html-sanitizer 1.7.2…);
 chạy lại → `No vulnerabilities found`.
-Ảnh: `docs/screenshots/BUG-06-truoc.png` (trước), `docs/screenshots/sec-7.png` (sau)
+Ảnh: `docs/screenshots/BUG-06-truoc.png` (trước), `docs/screenshots/sec-7.png` (sau), `docs/screenshots/sec-7-brakeman.png` (đủ 3 cảnh báo)
