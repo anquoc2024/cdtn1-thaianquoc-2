@@ -21,14 +21,18 @@ Thái An Quốc – 2374802012635 · Smart CRM – Mekong Mobile · Rails 8.1 + 
 
 ## 2. Loại test và số lượng
 
-- Bộ test tự động: 128 test, chạy bằng MỘT lệnh `bin/rails test` (thư mục `src`).
-- Test Report chọn 12 test case đại diện theo kim tự tháp:
-  **4 unit / service** (TC-01, TC-02, TC-03, TC-08) · **6 integration** – Rails integration test gọi controller,
-  router, CSDL thật mà không mở cổng (TC-06, TC-07, TC-09, TC-10, TC-11, TC-12) · **2 system / API** qua curl
-  vào server đang chạy (TC-04, TC-05).
-- Đủ 5 loại BT3: luồng đúng ×3 (TC-01–03) · giá trị biên ×2 (TC-04, TC-05 – hai bên ranh giới 10 chữ số) ·
-  dữ liệu sai ×2 (TC-06, TC-07) · vi phạm quy tắc ×2 (TC-08, TC-09) · bảo mật ×2 (TC-10 A01, TC-11 A07) ·
-  tái lập ×1 (TC-12).
+- Bộ test tự động: 129 test (128 cũ + test chống SQL injection của TC-16), chạy bằng MỘT lệnh `bin/rails test` (thư mục `src`).
+- Test Report chọn 16 test case **theo chức năng**: đăng nhập / đăng xuất (TC-01, TC-02, TC-13), tra cứu khách hàng
+  (TC-03, TC-04, TC-16), thêm khách hàng (TC-05, TC-06), tạo yêu cầu (TC-07, TC-08), danh sách yêu cầu (TC-09),
+  cập nhật trạng thái (TC-10), sửa / xóa yêu cầu (TC-14, TC-15), phân quyền (TC-11), nạp dữ liệu (TC-12).
+- Tầng: **12 integration** – Rails integration test gọi controller, router, CSDL thật mà không mở cổng
+  (TC-01–04, TC-07–11, TC-13–15) · **2 system / API** qua curl vào server đang chạy (TC-05, TC-06) ·
+  **1 service + CSDL** (TC-12) · **1 integration + API thật** (TC-16).
+  Tầng unit (máy tính hạn cam kết, sinh mã, làm sạch dữ liệu, máy trạng thái) nằm trong bộ test tự động
+  ở `test/services/` và chạy cùng lệnh `bin/rails test`.
+- Đủ 5 loại BT3: luồng đúng ×6 (TC-01, 03, 07, 09, 14, 15) · giá trị biên ×2 (TC-05, TC-06 – hai bên ranh giới
+  10 chữ số) · dữ liệu sai ×2 (TC-02, TC-08) · bảo mật ×3 (TC-11 A01, TC-13 A07, TC-16 A05) · tái lập ×1 (TC-12);
+  thêm luồng ngoại lệ UC08 (TC-04) và vi phạm BR08 (TC-10).
 - Kỹ thuật chọn dữ liệu: **phân vùng tương đương** (SĐT hợp lệ / sai độ dài / sai đầu số; yêu cầu đủ trường /
   thiếu trường) và **giá trị biên** (SĐT 10 chữ số – nhận, 9 chữ số – từ chối).
 - Mọi kết quả mong đợi kiểm cả mã trạng thái, mã lỗi VÀ tác dụng phụ (đếm bản ghi trước / sau, trạng thái không đổi).
@@ -45,6 +49,6 @@ Thái An Quốc – 2374802012635 · Smart CRM – Mekong Mobile · Rails 8.1 + 
 - Ubuntu 26.04 (WSL 2), Ruby 4.0.5, Rails 8.1, PostgreSQL 18.
 - Test tự động: CSDL `src_test`, mỗi test tự dựng dữ liệu trong `setup` và chạy trong transaction được rollback
   sau test — không phụ thuộc dữ liệu có sẵn trên máy.
-- Test API thủ công (TC-04, TC-05, TC-12): `bin/rails db:reset` (seed bộ dữ liệu L2 của giảng viên trong
+- Test API thủ công (TC-05, TC-06, TC-12, TC-16): `bin/rails db:reset` (seed bộ dữ liệu L2 của giảng viên trong
   `data/mau/`, 2 tài khoản `quoc@mekong.vn` / `phu@mekong.vn`), rồi `bin/rails server`.
 - Chạy từng test case: `bash scripts/tc.sh TC-05` (in lệnh, kết quả, đếm trước / sau); chạy hết: `bash scripts/tc.sh all`.

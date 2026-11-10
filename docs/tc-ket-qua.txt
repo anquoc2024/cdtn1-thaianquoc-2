@@ -1,0 +1,109 @@
+
+[1m════ TC-01 · Đăng nhập – đúng email, mật khẩu → vào trang theo vai trò ════[0m
+2026-11-10 13:05:08
+$ bin/rails test test/integration/authentication_test.rb:31 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+AuthenticationTest#test_Nhân_viên_tiếp_nhận_đăng_nhập_→_vào_Tra_cứu_khách_hàng;_Quản_lý_→_vào_Danh_sách_yêu_cầu = 0.12 s = .
+1 runs, 6 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-02 · Đăng nhập – sai mật khẩu → báo lỗi, không tạo phiên ════[0m
+2026-11-10 13:05:33
+$ bin/rails test test/integration/authentication_test.rb:23 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+AuthenticationTest#test_sai_mật_khẩu:_ở_lại_trang_đăng_nhập,_báo_lỗi,_không_tạo_phiên = 0.10 s = .
+1 runs, 5 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-03 · Tra cứu khách hàng – SĐT có dấu cách → tìm thấy ════[0m
+2026-11-10 13:06:02
+$ bin/rails test test/integration/customer_lookup_test.rb:21 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+CustomerLookupTest#test_tìm_theo_SĐT_có_dấu_cách = 0.29 s = .
+1 runs, 3 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-04 · Tra cứu khách hàng – không tìm thấy (UC08) ════[0m
+2026-11-10 13:06:24
+$ bin/rails test test/integration/customer_lookup_test.rb:54 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+CustomerLookupTest#test_không_tìm_thấy_theo_SĐT_/_mã_/_tên_(UC08):_không_có_nút_tiếp_tục = 0.18 s = .
+1 runs, 12 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-05 · Thêm khách hàng – biên SĐT đúng 10 chữ số → 201 (API thật) ════[0m
+2026-11-10 13:06:46
+Khách hàng trước: 310
+$ curl -s -i -X POST http://127.0.0.1:3000/api/customers -H 'Authorization: Bearer <token NV>' -d '{"name":"Khách TC05","phone":"0994316007"}'
+HTTP/1.1 201 Created
+{"data":{"id":311,"code":"KH-000001","name":"Khách TC05","phone":"0994316007","email":null,"address":null,"created_at":"2026-11-10T20:06:48+07:00","updated_at":"2026-11-10T20:06:48+07:00"}}
+Khách hàng sau:   311   (dữ liệu thử: phone=0994316007 – 10 chữ số)
+
+[1m════ TC-06 · Thêm khách hàng – biên SĐT 9 chữ số → 400, không tạo khách (API thật) ════[0m
+2026-11-10 13:07:11
+Khách hàng trước: 311
+$ curl -s -i -X POST http://127.0.0.1:3000/api/customers -H 'Authorization: Bearer <token NV>' -d '{"name":"Khách TC06","phone":"091234567"}'
+HTTP/1.1 400 Bad Request
+{"error":"DU_LIEU_KHONG_HOP_LE","message":"Thông tin khách hàng không hợp lệ.","chi_tiet":{"cac_truong":[{"truong":"phone","ly_do":"phải gồm 10 chữ số, bắt đầu bằng 0"}]}}
+Khách hàng sau:   311   (dữ liệu thử: phone=091234567 – 9 chữ số)
+
+[1m════ TC-07 · Tạo yêu cầu – thành công: mã BH, Mới tiếp nhận, hạn +24h ════[0m
+2026-11-10 13:07:31
+$ bin/rails test test/integration/warranty_request_creation_test.rb:32 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+WarrantyRequestCreationTest#test_UC06_–_tạo_thành_công:_sinh_mã,_trạng_thái_Mới_tiếp_nhận,_hạn_=_+24h = 0.21 s = .
+1 runs, 13 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-08 · Tạo yêu cầu – thiếu trường bắt buộc → không tạo gì ════[0m
+2026-11-10 13:07:53
+$ bin/rails test test/integration/warranty_request_creation_test.rb:53 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+WarrantyRequestCreationTest#test_BR04_–_thiếu_trường_bắt_buộc_thì_không_tạo_gì_cả = 0.23 s = .
+1 runs, 10 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-09 · Danh sách yêu cầu – lọc Quá hạn ════[0m
+2026-11-10 13:08:14
+$ bin/rails test test/integration/manager_warranty_requests_test.rb:50 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+ManagerWarrantyRequestsTest#test_lọc_trạng_thái_Quá_hạn = 0.53 s = .
+1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-10 · Cập nhật trạng thái – nhảy cóc sang Hoàn tất bị chặn (BR08) ════[0m
+2026-11-10 13:08:36
+$ bin/rails test test/integration/warranty_request_status_test.rb:33 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+WarrantyRequestStatusTest#test_chuyển_sai_thứ_tự_thì_báo_lỗi,_không_đổi_gì = 0.24 s = .
+1 runs, 3 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-11 · Phân quyền – Quản lý không sửa, không xóa yêu cầu (A01) ════[0m
+2026-11-10 13:08:57
+$ bin/rails test test/integration/authorization_test.rb:68 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+ManagerAuthorizationTest#test_Quản_lý_không_sửa,_không_xóa_được_yêu_cầu = 0.17 s = .
+1 runs, 6 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-12 · Nạp dữ liệu – chạy lần hai không nhân đôi (tái lập) ════[0m
+2026-11-10 13:09:17
+$ bin/rails test test/services/l2_dataset_importer_test.rb:70 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+L2DatasetImporterTest#test_chạy_lại_lần_hai_không_nhân_đôi_dữ_liệu = 0.18 s = .
+1 runs, 5 assertions, 0 failures, 0 errors, 0 skips
+
+Trên CSDL development – trước: KH 311 · TB 31 · YC 30
+$ bin/rails import:l2 2>&1 | head -1
+Bộ dữ liệu L2: nhóm sự cố mới 0 (đã có 6) · khách hàng mới 0 (đã có 31) · thiết bị mới 0 (đã có 31) · yêu cầu mới 0 (đã có 30) · loại 7 dòng
+Sau:                            KH 311 · TB 31 · YC 30
+
+[1m════ TC-13 · Đăng xuất – xóa phiên, vào lại trang bị chuyển về đăng nhập ════[0m
+2026-11-10 13:09:41
+$ bin/rails test test/integration/authentication_test.rb:57 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+AuthenticationTest#test_đăng_xuất_xóa_phiên;_vào_lại_trang_bị_chuyển_về_đăng_nhập = 0.10 s = .
+1 runs, 8 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-14 · Sửa yêu cầu – lưu thay đổi, ghi lịch sử Cập nhật thông tin ════[0m
+2026-11-10 13:10:00
+$ bin/rails test test/integration/warranty_request_edit_test.rb:26 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+WarrantyRequestEditTest#test_lưu_thay_đổi_thì_về_phiếu,_có_thông_báo_và_dòng_Cập_nhật_thông_tin_trong_lịch_sử = 0.24 s = .
+1 runs, 9 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-15 · Xóa yêu cầu – yêu cầu mất, thiết bị vẫn còn ════[0m
+2026-11-10 13:10:19
+$ bin/rails test test/integration/warranty_request_edit_test.rb:45 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+WarrantyRequestEditTest#test_xóa_yêu_cầu_thì_về_danh_sách,_thiết_bị_vẫn_còn = 0.19 s = .
+1 runs, 6 assertions, 0 failures, 0 errors, 0 skips
+
+[1m════ TC-16 · Tra cứu khách hàng – chống SQL injection ' OR '1'='1 (A05) ════[0m
+2026-11-10 13:11:16
+$ bin/rails test test/integration/customer_lookup_test.rb:74 -v 2>&1 | grep -E 'Test#|runs,|Failure|Error|Expected'
+CustomerLookupTest#test_chống_SQL_injection_(A05):_'_OR_'1'='1_chỉ_là_chuỗi_tìm_kiếm,_không_trả_về_toàn_bộ_khách = 0.18 s = .
+1 runs, 11 assertions, 0 failures, 0 errors, 0 skips
+
+Trên server thật – tổng số khách trong CSDL: 311
+$ curl -s -G http://127.0.0.1:3000/api/customers --data-urlencode "q=' OR '1'='1" -H 'Authorization: Bearer <token NV>'
+{"data":[],"meta":{"trang":1,"so_trang":1,"tong_so":0,"moi_trang":20,"tim_theo":"name"}}
