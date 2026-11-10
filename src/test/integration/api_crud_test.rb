@@ -77,4 +77,14 @@ class ApiCrudTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
     assert_equal "KHONG_CO_QUYEN", json["error"]
   end
+
+  test "JSON hỏng: 400 DU_LIEU_KHONG_HOP_LE, không phải 500 LOI_HE_THONG (BUG-07)" do
+    assert_no_difference "Customer.count" do
+      post api_customers_path, params: '{"name":"A", phone', headers: auth.merge("Content-Type" => "application/json")
+    end
+
+    assert_response :bad_request
+    assert_equal "DU_LIEU_KHONG_HOP_LE", json["error"]
+    assert_nil json.dig("chi_tiet", "ma_tra_cuu")
+  end
 end

@@ -34,6 +34,11 @@ module Api
       render_error(:bad_request, "DU_LIEU_KHONG_HOP_LE", "Thiếu tham số bắt buộc: #{exception.param}.")
     end
 
+    # Thân request không phải JSON hợp lệ là lỗi phía người gửi → 400, không phải sự cố hệ thống 500 (BUG-07)
+    rescue_from ActionDispatch::Http::Parameters::ParseError do
+      render_error(:bad_request, "DU_LIEU_KHONG_HOP_LE", "Nội dung gửi lên không phải JSON hợp lệ.")
+    end
+
     before_action :authenticate_api_user!
 
     private
