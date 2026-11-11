@@ -12,6 +12,7 @@ Thái An Quốc – 2374802012635 · Mỗi bug một commit riêng `fix(...)`; l
 | BUG-06 | Major | 11 gem (Rails, rack, nokogiri…) có 44 lỗ hổng đã công bố, gồm 1 Critical và 5 High | [e7c4923](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/e7c49235b1f9d6a09734586af0c617862c3495b7) |
 | BUG-07 | Minor | Gửi JSON hỏng bị trả 500 `LOI_HE_THONG` thay vì 400 | [1ac9df3](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/1ac9df33586f8236c8a7d43f2564de7d819fc28f) |
 | BUG-08 | Minor | Mật khẩu demo bị in ra log container khi nạp dữ liệu mẫu | [50d456d](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/50d456d655e82e1e110d8b67bc70ff736a95813a) |
+| BUG-09 | Major | Clone bằng Git for Windows thì container app không khởi động (script bị đổi sang CRLF) | [5d8f608](https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/5d8f6088f2417ea4a64839222264ac0cd167e204) |
 
 ## BUG-01 — Quản lý trung tâm dùng được chức năng của Nhân viên tiếp nhận
 
@@ -140,3 +141,23 @@ Thái An Quốc – 2374802012635 · Mỗi bug một commit riêng `fix(...)`; l
    không chứa mật khẩu, không chứa token.
 7. **Commit và xác nhận:** https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/50d456d655e82e1e110d8b67bc70ff736a95813a · test mới PASS; `down -v` → `up` → chạy lại checklist mục 6 → `(không có)`
    (ảnh `sec-6.png`); `bin/rails test` → 131 runs, 0 failures.
+
+## BUG-09 — Clone trên Windows thì container app không khởi động
+
+1. **Mã và mức độ:** BUG-09 · MAJOR — nếu repo được clone bằng Git for Windows (mặc định `core.autocrlf=true`), container
+   `app` dừng ngay khi khởi động: hệ thống không lên, phép thử máy trắng (C1) thất bại. Có cách làm khác (clone trong
+   WSL / Linux / macOS, hoặc tắt `core.autocrlf`) nên xếp Major.
+2. **Phát hiện bởi:** rà soát phép thử máy trắng trên môi trường khác — giả lập máy Windows bằng
+   `git clone -c core.autocrlf=true --branch v1.0 …` rồi chạy thử `src/bin/docker-entrypoint`
+   (ảnh `docs/screenshots/BUG-09-truoc.png`).
+3. **Triệu chứng:** `file src/bin/docker-entrypoint` → `… with CRLF line terminators`; chạy script → `/bin/bash: -: invalid
+   option`. Đây chính là ENTRYPOINT của image nên container `app` thoát, không bao giờ healthy.
+4. **Cách tái lập:** `git clone -q -c core.autocrlf=true --branch v1.0 https://github.com/anquoc2024/cdtn1-thaianquoc-2.git x`
+   (tag cũ, trước `5d8f608`) → `x/src/bin/docker-entrypoint echo ok` → `invalid option`; luôn xảy ra khi Git đổi xuống dòng.
+5. **Nguyên nhân:** repo không có `.gitattributes`, nên Git for Windows đổi LF → CRLF khi checkout. Dòng shebang thành
+   `#!/bin/bash -e\r`; kernel truyền tham số `-e\r` cho bash và bash từ chối tùy chọn lạ. Mọi lần thử trước đều clone
+   trong WSL (giữ LF) nên không lộ lỗi.
+6. **Cách sửa:** thêm `.gitattributes` ở gốc repo: `* text=auto eol=lf` (checkout luôn giữ LF, bất kể `core.autocrlf`);
+   CSV, PNG, JPG, PDF, DOCX, drawio giữ nguyên từng byte. Deployment Guide thêm một dòng Troubleshooting.
+7. **Commit và xác nhận:** https://github.com/anquoc2024/cdtn1-thaianquoc-2/commit/5d8f6088f2417ea4a64839222264ac0cd167e204 · clone lại với `core.autocrlf=true` → `file` không còn `CRLF`, chạy script in `ok`
+   (ảnh `docs/screenshots/BUG-09-sau.png`); phép thử máy trắng theo tag `v1.0` gắn lại sau bản sửa vẫn đạt.
