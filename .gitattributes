@@ -1,0 +1,12 @@
+# Giữ kiểu xuống dòng Linux (LF) cho mọi tệp văn bản khi checkout, kể cả khi clone bằng Git for Windows
+# (core.autocrlf=true). Không có tệp này, bin/docker-entrypoint bị đổi sang CRLF và container app dừng
+# ngay với lỗi "/bin/bash: -: invalid option" (BUG-09).
+* text=auto eol=lf
+
+# Dữ liệu và tệp nhị phân: giữ nguyên từng byte, không đổi xuống dòng
+*.csv  -text
+*.png  binary
+*.jpg  binary
+*.pdf  binary
+*.docx binary
+*.drawio -text
