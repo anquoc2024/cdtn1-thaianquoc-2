@@ -6,7 +6,7 @@ Thái An Quốc – 2374802012635 · Commit chạy test: `47593cf` · Ngày ch�
 tạo yêu cầu, danh sách yêu cầu, cập nhật trạng thái, sửa / xóa yêu cầu, phân quyền, nạp dữ liệu.
 Chạy lại bất kỳ test case nào: `bash scripts/tc.sh TC-xx`. Ảnh chụp từng lần chạy: `docs/screenshots/TC-xx.png`.
 
-**Tổng kết:** đã chạy thật 16 / 16 · PASS 16 · FAIL 0 · Bộ test tự động (`bin/rails test`): 129 runs, 578 assertions, 0 failures, 0 errors
+**Tổng kết:** đã chạy thật 16 / 16 · PASS 16 · FAIL 0 · Bộ test tự động (`bin/rails test`): 129 runs, 578 assertions, 0 failures, 0 errors (lúc chạy 16 TC, commit `47593cf`); bản nộp `v1.0` có thêm 2 test hồi quy của BUG-07, BUG-08: 131 runs, 591 assertions, 0 failures, 0 errors
 
 Nhật ký chữ của lần chạy: `docs/tc-ket-qua.txt` (sinh bởi `bash scripts/chup-tc.sh`).
 
