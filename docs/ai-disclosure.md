@@ -13,3 +13,19 @@ Họ và tên: Thái An Quốc
 MSSV: 2374802012635
 Ngày: 29/10/2026
 
+
+---
+
+# PHỤ LỤC (cập nhật Bài tập 3 – giai đoạn 3, buổi 13–16): KHAI BÁO SỬ DỤNG CÔNG CỤ AI
+
+| Công cụ | Dùng vào việc gì | Áp dụng ở tệp / hàm nào | Em đã kiểm chứng thế nào |
+|---|---|---|---|
+| Trợ lý AI dạng chat (ChatGPT) | Gợi ý test case và cách viết một mục Bug Log đủ 7 dòng | `docs/test-report.md`, `docs/bug-log.md` | Chỉ giữ test case em tự chạy được trên hệ thống thật; kết quả thực tế ghi từ log chạy thật; nguyên nhân của từng bug em đối chiếu với mã nguồn và bản sửa |
+| Trợ lý AI dạng chat (Claude) | Chọn 16 test case theo chức năng, viết script chạy và chụp từng test case; viết test chống SQL injection | `docs/test-plan.md`, `docs/test-report.md`, `scripts/tc.sh`, `scripts/chup-tc.sh`, `src/test/integration/customer_lookup_test.rb` | Tự chạy cả 16 test case, chụp 16 ảnh `docs/screenshots/TC-xx.png`; điền P/F theo `docs/tc-ket-qua.txt`; `bin/rails test` 131 runs, 0 failures |
+| Trợ lý AI dạng chat (Claude) | Tìm nguyên nhân bug, viết bản sửa và test hồi quy | `Api::BaseController` (BUG-07), `db/seeds.rb` + `seeds_output_test.rb` (BUG-08), `Gemfile.lock` (BUG-06), `.gitattributes` (BUG-09), `warranty_request_edit_test.rb` (BUG-05) | Tự tái lập lỗi trước khi sửa (ảnh `BUG-0x-truoc.png`), chạy lại test sau khi sửa; mỗi bug một commit `fix(...)` riêng, mở lại link commit để kiểm |
+| Trợ lý AI dạng chat (Claude) | Viết gói Docker và Deployment Guide tiếng Anh | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, `src/bin/docker-entrypoint`, `src/config/database.yml`, `docs/deployment-guide.md` | Tự cài Docker Engine trong WSL, chạy phép thử máy trắng theo tag `v1.0-rc1` và `v1.0`; mọi số liệu trong Guide (thời gian build, số bản ghi, kết quả test) lấy từ lần chạy thật |
+| Trợ lý AI dạng chat (Claude) | Viết script tự kiểm 7 mục checklist bảo mật | `scripts/kiem-bao-mat.sh`, `docs/checklist-bao-mat.md` | Tự chạy script, chụp ảnh từng mục; phát hiện và sửa BUG-06, 07, 08; ghi trung thực phần chưa làm (API token không hết hạn) |
+| Trợ lý AI dạng chat (Claude) | Viết script gọi 46 request và tài liệu API tiếng Anh | `docs/scripts/goi-api-docker.sh`, `docs/api-examples.md`, `docs/api-docs.md` | Tự chạy script trên Docker (46/46 đúng mã HTTP); ví dụ trong tài liệu chép nguyên từ kết quả chạy; kiểm tra tệp không lộ token |
+
+Tôi đã đọc, hiểu và chịu trách nhiệm về toàn bộ nội dung nộp ở Bài tập 3.
+Họ và tên: Thái An Quốc · MSSV: 2374802012635

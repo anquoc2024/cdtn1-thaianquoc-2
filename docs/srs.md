@@ -386,6 +386,9 @@ Các chức năng FR06–FR08, FR11, FR12 được cung cấp cả qua giao di�
 | BR09 | Hủy yêu cầu bắt buộc có lý do; mọi lần đổi trạng thái đều ghi lịch sử (trạng thái cũ, mới, ghi chú, người đổi, thời điểm). | mới |
 | BR10 | "Quá hạn" = yêu cầu chưa đóng và hạn cam kết nhỏ hơn hiện tại; tính khi truy vấn, không lưu. | mới |
 | BR11 | Một thiết bị (số serial / IMEI) chỉ thuộc một khách hàng. | mới |
+| BR12 | Mã khách hàng do hệ thống tự sinh dạng `KH-NNNNNN`, dải 000001–099999; dải từ `KH-100000` dành cho khách nạp từ bộ dữ liệu mẫu (TD-25, TD-28). | mới |
+| BR13 | Không xóa khách hàng đã có thiết bị, để giữ lịch sử bảo hành (TD-25). | mới |
+| BR14 | Không xóa nhóm sự cố đang được yêu cầu bảo hành sử dụng (TD-25). | mới |
 
 ---
 

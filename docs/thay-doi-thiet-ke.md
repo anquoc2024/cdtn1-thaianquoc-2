@@ -288,6 +288,45 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
                     sửa – xóa yêu cầu. routes.rb, User, 2 controller, show.html.erb, edit.html.erb mới; sửa 4 tệp
                     test, thêm 2 tệp test (khoảng 118 → 128).
 
+
+### F. Bài tập 3 – kiểm thử, đóng gói, triển khai và bảo mật
+
+### TD-30  Đóng gói bằng Docker Compose: app Rails production + PostgreSQL 18, tự khởi tạo dữ liệu
+- Phản hồi của GV : (yêu cầu BT3, thành phần 4) người chấm dựng lại hệ thống từ thư mục trống bằng ≤ 2 lệnh.
+- Quyết định      : SỬA – thêm Dockerfile, docker-compose.yml, .dockerignore ở gốc repo (build từ gốc để chép cả
+                    src/ và data/mau/); db có healthcheck và không mở cổng ra máy chủ; app chờ db healthy, có
+                    healthcheck /api/health. bin/docker-entrypoint chạy db:prepare (tạo 4 CSDL production, nạp bảng,
+                    chạy seed khi CSDL trống). config/database.yml đọc DB_HOST, DB_USER, DB_PASSWORD, DB_NAME.
+                    .env.example viết lại cho Docker (7 biến).
+- Lý do           : Đạt mức tái lập 3 (đóng gói cả môi trường), không bắt người chấm cài Ruby / PostgreSQL.
+- Ảnh hưởng       : Không đổi schema. Chạy trực tiếp trên máy vẫn như cũ (biến DB_* để trống → kết nối socket).
+                    Thêm docs/deployment-guide.md (tiếng Anh). Phép thử máy trắng đạt theo tag v1.0-rc1 và v1.0.
+
+### TD-31  Thân JSON hỏng trả 400 thay vì 500 (BUG-07)
+- Phản hồi của GV : (checklist bảo mật mục 5) gây lỗi và đọc phản hồi.
+- Quyết định      : SỬA – Api::BaseController bắt ActionDispatch::Http::Parameters::ParseError →
+                    400 DU_LIEU_KHONG_HOP_LE; thêm test hồi quy trong api_crud_test.rb.
+- Lý do           : Lỗi phía người gửi không phải sự cố hệ thống; tránh log ERROR và báo động giả.
+- Ảnh hưởng       : docs/api-docs.md ghi mã lỗi mới cho mọi endpoint nhận thân JSON.
+
+### TD-32  Seed không in mật khẩu demo và token ra màn hình ngoài development (BUG-08)
+- Phản hồi của GV : (checklist bảo mật mục 6) nhật ký không ghi secret.
+- Quyết định      : SỬA – db/seeds.rb chỉ in mật khẩu và token ở development; thêm seeds_output_test.rb.
+- Lý do           : Trong container, đầu ra của seed nằm lại trong log.
+- Ảnh hưởng       : Tài khoản demo được ghi trong docs/deployment-guide.md thay vì in ra log.
+
+### TD-33  Nâng phiên bản thư viện có lỗ hổng: Rails 8.1.4.1, rack 3.2.8, nokogiri 1.19.7… (BUG-06)
+- Phản hồi của GV : (checklist bảo mật mục 7) phụ thuộc ghim phiên bản và đã kiểm lỗ hổng.
+- Quyết định      : SỬA – bundle update --conservative đúng 11 gem bundler-audit báo; chỉ đổi Gemfile.lock.
+- Lý do           : bundler-audit báo 44 lỗ hổng đã công bố (1 Critical, 5 High).
+- Ảnh hưởng       : Không đổi mã nguồn; 131 test PASS; thêm scripts/kiem-bao-mat.sh, docs/checklist-bao-mat.md.
+
+### TD-34  Ép kiểu xuống dòng LF bằng .gitattributes (BUG-09)
+- Phản hồi của GV : (phép thử máy trắng) giảng viên có thể clone trên Windows.
+- Quyết định      : SỬA – thêm .gitattributes `* text=auto eol=lf`; CSV, ảnh, PDF, DOCX giữ nguyên byte.
+- Lý do           : Git for Windows mặc định đổi LF → CRLF khi checkout; bin/docker-entrypoint có CRLF thì
+                    container app dừng ngay ("/bin/bash: -: invalid option").
+- Ảnh hưởng       : Không đổi mã nguồn. Deployment Guide thêm một dòng Troubleshooting.
 ---
 
 ## Việc cần làm để tài liệu khớp với các quyết định trên
@@ -302,8 +341,12 @@ File này nối tiếp ở BT2, BT3 (thêm mục mới vào cuối, không sửa
 | docs/Wireframe.drawio – màn hình 1, 2, 3 | TD-12, TD-13, TD-14, TD-15 | [ ] |
 | .gitignore, .env.example, docs/api-docs.md, README | TD-07 | [x] |
 | docs/srs.md – NFR05 đưa lại vào phạm vi, tài khoản đăng nhập | TD-24 | [ ] |
-| docs/srs.md – US12, US13, FR13, FR14, BR12–BR14 | TD-25 | [ ] |
-| docs/api-docs.md – session, customers, issue_categories, stats, priorities, PATCH / DELETE warranty_requests | TD-24, TD-25, TD-26, TD-29 | [ ] |
+| docs/srs.md – BR12–BR14 | TD-25 | [x] |
+| docs/srs.md – US12, US13, FR13, FR14 | TD-25 | [ ] |
+| docs/api-docs.md – session, customers, issue_categories, stats, priorities, PATCH / DELETE warranty_requests | TD-24, TD-25, TD-26, TD-29 | [x] |
 | docs/srs.md – User Story / Use Case Quản lý (UC01, UC06), sửa – xóa yêu cầu, FR12 | TD-29 | [ ] |
 | docs/UseCase.drawio – Quản lý nối UC01, UC06; thêm UC sửa, xóa yêu cầu | TD-29 | [ ] |
 | docs/architecture.drawio – API client (JS), middleware lỗi 503 | TD-26, TD-27 | [ ] |
+| docs/deployment-guide.md, .env.example, README – chạy bằng Docker | TD-30 | [x] |
+| docs/api-docs.md – mã lỗi JSON hỏng; docs/checklist-bao-mat.md | TD-31, TD-32, TD-33 | [x] |
+| .gitattributes, docs/deployment-guide.md (Troubleshooting) | TD-34 | [x] |

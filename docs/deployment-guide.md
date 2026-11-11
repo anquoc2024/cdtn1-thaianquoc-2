@@ -69,6 +69,9 @@ Loaded **automatically** on the first start, while the database volume is still 
 `bin/docker-entrypoint` runs `bin/rails db:prepare`, which creates the databases, loads the schema
 and runs `db/seeds.rb`. The seed reads the CSV files in `data/mau/` (copied into the image at `/data/mau`).
 Later restarts only apply pending migrations and do not load the data again.
+To load the sample data **again on purpose** (re-run test — it must not create duplicates):
+`docker compose exec app bin/rails import:l2` → every count is "mới 0" (0 new) and the totals stay the same
+(see step 7 in section 5).
 
 Expected records after loading:
 
@@ -98,9 +101,10 @@ Demo accounts (sample data, not real secrets — passwords are stored as bcrypt 
 | 4 | `curl -s -X POST http://localhost:3000/api/session -H "Content-Type: application/json" -d '{"email_address":"quoc@mekong.vn","password":"Mekong@2026"}'` | HTTP 200, JSON with `"token"`, `"role":"receptionist"` and the permission list |
 | 5 | Open `http://localhost:3000`, sign in as `quoc@mekong.vn` | Redirected to **Tra cứu khách hàng**; searching `0843145885` shows customer **Bùi Tuấn Huy, KH-114121** |
 | 6 | `docker compose exec -e RAILS_ENV=test app bin/rails db:test:prepare test` | `131 runs, 591 assertions, 0 failures, 0 errors, 0 skips` |
+| 7 | `docker compose exec app bin/rails import:l2`, then the command of step 3 again | `Bộ dữ liệu L2: nhóm sự cố mới 0 (đã có 6) · khách hàng mới 0 (đã có 31) · thiết bị mới 0 (đã có 31) · yêu cầu mới 0 (đã có 30) · loại 7 dòng`; step 3 still prints `users=2 customers=310 devices=31 requests=30` |
 
 Step 6 runs the whole automated test suite inside the container against a separate test database;
-it does not touch the sample data.
+it does not touch the sample data. Step 7 loads the sample data a second time to show that loading is repeatable without duplicates.
 
 ## Troubleshooting
 
@@ -113,3 +117,4 @@ it does not touch the sample data.
 | Pages show old data or no data | Volume from an earlier run | `docker compose down -v`, then `docker compose up -d` |
 | `permission denied … /var/run/docker.sock` (Linux / WSL) | User is not in the `docker` group | `sudo usermod -aG docker $USER`, then open a new terminal |
 | `docker: command not found` in WSL | Docker is not available in the WSL distro | Enable WSL integration in Docker Desktop, or install Docker Engine inside the distro |
+| `app` exits with `/bin/bash: -: invalid option` | Scripts were checked out with Windows line endings (CRLF) by a Git client that ignores `.gitattributes` | Clone again with `git clone --config core.autocrlf=false --branch v1.0 …` (the repo's `.gitattributes` forces LF since BUG-09) |
