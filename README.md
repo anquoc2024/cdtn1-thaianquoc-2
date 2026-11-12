@@ -335,6 +335,7 @@ Mỗi bug sửa bằng một commit `fix(...)` riêng, có test hoặc lệnh x�
 | Ảnh minh chứng | `docs/screenshots/deploy-render.png` |
 
 Bản deploy chỉ để xem thử. Cách chạy chuẩn để chấm là gói Docker theo tag `v1.0` (mục 3.1).
+Các bước đã làm để deploy và bảng biến môi trường trên Render: **mục 6** của [`docs/deployment-guide.md`](docs/deployment-guide.md).
 Khóa bí mật và mật khẩu CSDL của bản deploy khai trong phần Environment của Render, không nằm trong repo.
 
 ## 8. Trạng thái hiện tại (Bài tập 3)

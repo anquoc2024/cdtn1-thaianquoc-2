@@ -118,3 +118,43 @@ it does not touch the sample data. Step 7 loads the sample data a second time to
 | `permission denied … /var/run/docker.sock` (Linux / WSL) | User is not in the `docker` group | `sudo usermod -aG docker $USER`, then open a new terminal |
 | `docker: command not found` in WSL | Docker is not available in the WSL distro | Enable WSL integration in Docker Desktop, or install Docker Engine inside the distro |
 | `app` exits with `/bin/bash: -: invalid option` | Scripts were checked out with Windows line endings (CRLF) by a Git client that ignores `.gitattributes` | Clone again with `git clone --config core.autocrlf=false --branch v1.0 …` (the repo's `.gitattributes` forces LF since BUG-09) |
+
+## 6. Trial deployment on Render (optional)
+
+A public copy of the same Docker image runs at **https://smartcrm-app.onrender.com**, on Render's free plan.
+It is only for viewing; the reference way to run the system is sections 2–5 above.
+
+| Item | Setting |
+|---|---|
+| Platform | Render (render.com) · region Singapore · Free plan |
+| Database | Render Postgres 18 `smartcrm-db` (database `smartcrm`, user `smartcrm`) |
+| Web service | `smartcrm-app` · language Docker · branch `main` · root directory empty · Dockerfile path `./Dockerfile` (the same image as section 2) |
+| Health check path | `/api/health` |
+
+Steps taken:
+
+1. Render dashboard → **New → Postgres**: name `smartcrm-db`, database `smartcrm`, user `smartcrm`, PostgreSQL 18, region Singapore, plan Free. Wait for **Available**, then copy the internal hostname and the password from **Connections**.
+2. Generate the session key on the local machine: `openssl rand -hex 64`.
+3. **New → Web Service** → connect the GitHub repository `anquoc2024/cdtn1-thaianquoc-2`: language Docker, branch `main`, region Singapore, instance type Free.
+4. In **Environment**, add the variables in the table below; in **Advanced**, set Health Check Path to `/api/health`; click **Deploy Web Service**.
+5. The first deploy builds the image (5–10 minutes). `bin/docker-entrypoint` runs `bin/rails db:prepare`, which creates `smartcrm` plus `smartcrm_cache`, `smartcrm_queue` and `smartcrm_cable`, and loads the sample data. The log ends with `Listening on http://0.0.0.0:3000` and the service turns **Live**.
+6. Check: `curl -s https://smartcrm-app.onrender.com/api/health` → `{"status":"ok","db":"ok"}`; sign in with a demo account from section 4; searching `0843145885` shows **Bùi Tuấn Huy, KH-114121**.
+
+| Variable | Value on Render |
+|---|---|
+| `DB_HOST` | Internal hostname of `smartcrm-db` (`dpg-…-a`) |
+| `DB_NAME` | `smartcrm` |
+| `DB_USER` | `smartcrm` |
+| `DB_PASSWORD` | Password of `smartcrm-db` (secret) |
+| `SECRET_KEY_BASE` | Output of `openssl rand -hex 64` (secret) |
+| `PORT` | `3000` — Puma listens on port 3000 (see `Dockerfile`) |
+| `RAILS_MAX_THREADS` | `3` — lower than the local default to fit the memory of the free instance |
+| `RAILS_LOG_LEVEL` | `info` |
+
+`RAILS_ENV=production` comes from the `Dockerfile`. The two secrets are entered only in Render's Environment tab and are not in the repository.
+
+Notes:
+
+- The service uses separate `DB_*` variables, as in `docker-compose.yml`, so that `db:prepare` creates the cache, queue and cable databases with their own schemas. Pointing all four connections to one database leaves out the Solid Cache table, and sign-in (rate-limited through Solid Cache) then fails with 500.
+- On the free plan the web service sleeps when it receives no traffic for a while; the first request after that can take about a minute.
+- A free Render Postgres database expires 30 days after it is created. If it expires, create a new one, update `DB_HOST` and `DB_PASSWORD`, and redeploy — `db:prepare` loads the sample data again.
